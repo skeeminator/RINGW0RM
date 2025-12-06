@@ -20,7 +20,11 @@
   <strong>🗓️ EXPECTED RELEASE DATE: 12/2025-01/2026 🗓️</strong>
 </p>
 
-> Includes plugin files + dependencies, all updates, and lifetime support.
+<p align="center">
+  <strong>📰 JOIN THE TELEGRAM FOR NEWS/UPDATES 📰</strong>
+</p>
+
+> Includes plugin files + dependencies, all updates, and lifetime support. t.me/HopelessLabs t.me/skeeminator
 
 ---
 
@@ -154,4 +158,5 @@ Interested? Ready to take your Pulsar setup to the next level?
 <p align="center">
   <strong>Ring0 — Because user-mode is for amateurs.</strong>
 </p>
+
 
