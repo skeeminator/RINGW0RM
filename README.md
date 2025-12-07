@@ -13,7 +13,11 @@
 ## 💰 Pricing
 
 <p align="center">
-  <strong>🔥 $250 USD — Lifetime 🔥</strong>
+  <strong>🔥 $250 USD EARLY BIRD PRICING (Only for the first 10 purchasers) — LIFETIME 🔥</strong>
+</p>
+
+<p align="center">
+  <strong>🔥 $500 USD LICENSE — LIFETIME 🔥</strong>
 </p>
 
 <p align="center">
@@ -24,7 +28,7 @@
   <strong>📰 JOIN THE TELEGRAM FOR NEWS/UPDATES 📰</strong>
 </p>
 
-> Includes plugin files + dependencies, all updates, and lifetime support. t.me/HopelessLabs t.me/skeeminator
+> Includes plugin files + dependencies, all updates, and lifetime support. Contact t.me/HopelessLabs t.me/skeeminator
 
 ---
 
@@ -158,5 +162,6 @@ Interested? Ready to take your Pulsar setup to the next level?
 <p align="center">
   <strong>Ring0 — Because user-mode is for amateurs.</strong>
 </p>
+
 
 
