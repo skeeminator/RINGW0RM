@@ -76,9 +76,18 @@ This isn't a toy. This is **professional-grade** kernel malware technology, buil
 ### 🌐 Network Operations
 
 - **Hide Ports** — Connections invisible to netstat and security tools
-- **DNS Hijacking** — Redirect domain lookups at kernel level
-- **IP Blocking** — Silently drop packets to/from any IP
-- **Stealth Listeners** — Bind to ports that don't appear in scans
+- **DNS Hijacking** — Redirect domain lookups at kernel level (WFP-based)
+- **IP Blocking** — Silently drop packets to/from any IP using WFP callouts
+- **Stealth Listeners** — WSK-based port binding invisible to port scanners
+- **C2 Stealth Mode** — One-click hide all common C2 ports
+
+### 🎭 Post-Exploitation (NEW!)
+
+- **Invisible Process Execution** — Run EXE/BAT/PS1/DLL/Shellcode completely hidden
+- **PPL Injection** — Inject code into Protected Process Light targets (csrss, lsass, smss)
+- **Hidden Scheduled Tasks** — Persistence that doesn't appear in Task Scheduler
+- **Parent PID Spoofing** — Launch processes with fake parent (explorer, svchost, lsass)
+- **LSASS Credential Dump** — Unprotect LSASS PPL then extract credentials
 
 ### 📁 File System Control
 
@@ -94,8 +103,12 @@ Ring0 includes a **sleek dark-themed GUI** integrated directly into Pulsar:
 
 - **Real-time status** — Driver connection, DSE state, Secure Boot status
 - **One-click operations** — No command-line needed
-- **Detailed logging** — See exactly what's happening
-- **Tabbed interface** — Organized by category (Main, AV/EDR, Networking)
+- **Detailed logging** — See exactly what's happening with verbose console output
+- **Tabbed interface** — Organized categories:
+  - **Main** — Process hiding, elevation, protection
+  - **AV/EDR** — Kill ETW, AMSI, callbacks, Defender
+  - **Networking** — Port hiding, packet filtering, DNS hijacking, stealth listeners
+  - **Process** — Invisible execution, PPL injection, PPID spoofing
 
 ---
 
@@ -141,6 +154,10 @@ When you purchase Ring0, you receive:
 | **SSDT Unhooking** | ❌ No kernel access | ✅ Restore original syscall table |
 | **Detection Risk** | ⚠️ Hooks visible to kernel scanners | ✅ Operates below detection layer |
 | **Defender Removal** | ⚠️ Can be re-enabled | ✅ Permanent kernel-level disable |
+| **Packet Filtering (WFP)** | ❌ No kernel network access | ✅ Real WFP callouts block traffic |
+| **PPL Injection** | ❌ Cannot bypass PPL | ✅ Inject into protected processes |
+| **Hidden Tasks** | ⚠️ Visible in Task Scheduler | ✅ Completely invisible persistence |
+| **PPID Spoofing** | ⚠️ User-mode only | ✅ Kernel-level parent manipulation |
 
 ### The Bottom Line
 
