@@ -79,7 +79,7 @@ This isn't a toy. This is **professional-grade** kernel malware technology, buil
 - **DNS Hijacking** — Redirect domain lookups at kernel level (WFP-based)
 - **IP Blocking** — Silently drop packets to/from any IP using WFP callouts
 - **Stealth Listeners** — WSK-based port binding invisible to port scanners
-- **C2 Stealth Mode** — One-click hide all common C2 ports
+- **Hide Common C2 Ports** — One-click hide common C2 ports
 
 ### 🎭 Post-Exploitation (NEW!)
 
@@ -188,6 +188,7 @@ Interested? Ready to take your Pulsar setup to the next level?
 <p align="center">
   <strong>Ring0 — Because user-mode is for amateurs.</strong>
 </p>
+
 
 
 
