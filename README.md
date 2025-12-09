@@ -1,200 +1,133 @@
-<p align="center">
-  <h1 align="center">⚡ Ring0 Plugin for Pulsar ⚡</h1>
-  <p align="center"><strong>The Ultimate Kernel-Level Control Solution</strong></p>
-  <p align="center">
-    <img src="https://img.shields.io/badge/Version-2.0.0-blue?style=for-the-badge" alt="Version"/>
-    <img src="https://img.shields.io/badge/Platform-Windows%2010%2F11-0078D6?style=for-the-badge&logo=windows" alt="Platform"/>
-    <img src="https://img.shields.io/badge/Pulsar-2.4.x+-green?style=for-the-badge" alt="Pulsar"/>
-  </p>
-</p>
+# Ring0 — Kernel Rootkit for Pulsar
+
+A kernel-level rootkit plugin that provides true Ring 0 access on Windows x64 systems.
 
 ---
 
-## 💰 Pricing
+## Why Kernel Mode?
 
-<p align="center">
-  <strong>🔥 $250 USD EARLY BIRD PRICING (Only for the first 10 purchasers) — LIFETIME 🔥</strong>
-</p>
+Most rootkits and RAT plugins operate entirely in user-space. This has fundamental limitations:
 
-<p align="center">
-  <strong>🔥 FOR PREORDERS CONTACT ON TELEGRAM 🔥</strong>
-</p>
+| Limitation | User-Mode Reality |
+|------------|-------------------|
+| **Process hiding** | Hooks user APIs, trivially detected by kernel-mode scanners |
+| **Persistence** | Registry/startup folder, easily enumerated |
+| **Privilege escalation** | Requires exploits or UAC bypass |
+| **EDR evasion** | Can't touch kernel callbacks, EDR sees everything |
 
-<p align="center">
-  <strong>🔥 $500 USD LICENSE — LIFETIME 🔥</strong>
-</p>
-
-                                                t.me/skeeminator
-
-
-<p align="center">
-  <strong>🗓️ EXPECTED RELEASE DATE: 12/2025-01/2026 🗓️</strong>
-</p>
-
-<p align="center">
-  <strong>📰 JOIN THE TELEGRAM FOR NEWS/UPDATES 📰</strong>
-</p>
-
-                                                t.me/HopelessLabs
-
-> Includes plugin files + dependencies, all updates, and lifetime support
+Ring0 operates at the kernel level, where these limitations don't apply.
 
 ---
 
-## 🎯 What is Ring0?
+## Key Features
 
-**Ring0** is a premium Pulsar plugin that provides **true kernel-level access** on Windows targets. Unlike user-mode tools that can be detected and blocked, Ring0 operates at the **deepest level of the operating system** — giving you capabilities that are simply impossible with standard techniques.
+### Kernel-Level Process Stealth
+- **Process Hiding**: Processes become invisible to Task Manager, Process Explorer, and all enumeration APIs
+- **SYSTEM Elevation**: Elevate any process to SYSTEM privileges without spawning new processes
+- **PPL Protection**: Protect processes with Antimalware-Light protection level
 
-This isn't a toy. This is **professional-grade** kernel malware technology, built on a custom rootkit driver and UEFI bootkit that **survives reboots** and **bypasses Driver Signature Enforcement (DSE)**.
+### Security Bypass
+- **DSE Bypass**: Load unsigned drivers via UEFI bootkit
+- **Callback Removal**: Disable EDR/AV kernel callbacks
+- **ETW Blinding**: Disable Event Tracing for Windows at the kernel level
+- **AMSI Bypass**: Kernel-level AMSI patching
 
----
+### Network Stealth
+- **Port Hiding**: Hide listening ports from netstat and all enumeration
+- **C2 Protection**: Automatic hiding of command & control connections
+- **DNS Interception**: Redirect or block DNS queries
+- **IP Blocking**: Kernel-level firewall
 
-## 🚀 Key Capabilities
-
-### 🔓 DSE Bypass & Persistence
-
-- **Elysium UEFI Bootkit** — Patches Windows bootloader to disable driver signing
-- **Boot-Start Driver** — Loads automatically on every reboot
-- **Survives Defender** — Cannot be removed by antivirus once installed
-- **No Test Signing Required** — Works on production systems
-
-### 👻 Process Manipulation
-
-- **Hide Any Process** — Invisible to Task Manager, Process Explorer, and EDR
-- **Elevate to SYSTEM** — Give any process NT AUTHORITY\SYSTEM privileges instantly
-- **PPL Protection** — Make your processes unkillable with Protected Process Light
-- **Strip All Protections** — Remove PPL from every process on the system
-
-### 🛡️ AV/EDR Evasion
-
-- **Kill ETW** — Blind all security telemetry at the kernel level
-- **Kill AMSI** — Bypass PowerShell/script scanning
-- **Remove Kernel Callbacks** — Unhook EDR process/thread/image/registry monitoring
-- **Force Unload Drivers** — Kick out security product drivers
-- **SSDT Unhooking** — Restore original syscall table
-
-### 🌐 Network Operations
-
-- **Hide Ports** — Connections invisible to netstat and security tools
-- **DNS Hijacking** — Redirect domain lookups at kernel level (WFP-based)
-- **IP Blocking** — Silently drop packets to/from any IP using WFP callouts
-- **Stealth Listeners** — WSK-based port binding invisible to port scanners
-- **Hide Common C2 Ports** — One-click hide common C2 ports
-
-### 🎭 Post-Exploitation (NEW!)
-
-- **Invisible Process Execution** — Run EXE/BAT/PS1/DLL/Shellcode completely hidden
-- **PPL Injection** — Inject code into Protected Process Light targets (csrss, lsass, smss)
-- **Hidden Scheduled Tasks** — Persistence that doesn't appear in Task Scheduler
-- **Parent PID Spoofing** — Launch processes with fake parent (explorer, svchost, lsass)
-- **LSASS Credential Dump** — Unprotect LSASS PPL then extract credentials
-
-### 📁 File System Control
-
-- **Restrict File Access** — Lock files to specific processes only
-- **Bypass Integrity Checks** — Execute unsigned binaries
-- **Protect from AV** — Block antivirus from scanning your payloads
+### Persistence
+- **UEFI Bootkit**: Survives OS reinstalls, loads before Windows
+- **Auto-Protection**: Payload automatically protected and hidden on boot
+- **EFI Backup**: Payload backed up to EFI partition for restoration
 
 ---
 
-## 🖥️ Professional Control Panel
+## Comparison with r77 Rootkit
 
-Ring0 includes a **sleek dark-themed GUI** integrated directly into Pulsar:
+r77 is a popular open-source user-mode rootkit. Here's how the approaches differ:
 
-- **Real-time status** — Driver connection, DSE state, Secure Boot status
-- **One-click operations** — No command-line needed
-- **Detailed logging** — See exactly what's happening with verbose console output
-- **Tabbed interface** — Organized categories:
-  - **Main** — Process hiding, elevation, protection
-  - **AV/EDR** — Kill ETW, AMSI, callbacks, Defender
-  - **Networking** — Port hiding, packet filtering, DNS hijacking, stealth listeners
-  - **Process** — Invisible execution, PPL injection, PPID spoofing
+| Aspect | Ring0 | r77 |
+|--------|-------|-----|
+| **Privilege level** | Kernel (Ring 0) | User (Ring 3) |
+| **Hiding mechanism** | Kernel-level, invisible to user APIs | API hooking, detectable |
+| **Detection surface** | Minimal | High |
+| **Persistence** | UEFI bootkit, survives reinstalls | Registry-based |
+| **SYSTEM access** | Native | Requires separate exploit |
+| **EDR interaction** | Can disable kernel callbacks | Cannot touch kernel |
 
----
-
-## ✅ Supported Platforms
-
-| Windows Version | Build Range | Status |
-|-----------------|-------------|--------|
-| Windows 10 (all versions) | 15063 - 19045 | ✅ Full Support |
-| Windows 11 21H2/22H2/23H2 | 22000 - 22631 | ✅ Full Support |
-| Windows 11 24H2 | 26100 | ✅ Full Support |
-
-> Automatic build detection ensures compatibility. Unsupported builds are clearly indicated.
+r77 is effective for scenarios where kernel access isn't feasible. Ring0 is for when you need capabilities that user-mode cannot provide.
 
 ---
 
-## 📦 What's Included
+## Comparison with User-Mode Tools
 
-When you purchase Ring0, you receive:
-
-- ✅ **Complete Plugin Package** — Server, Client, and Common DLLs
-- ✅ **Kernel Driver** — Pre-signed `ring0.sys` ready to deploy
-- ✅ **UEFI Bootkit** — `ring0.efi` for DSE bypass
-- ✅ **Drop-in Deployment** — Copy to Plugins folder and go
-- ✅ **Lifetime Updates** — All future versions included
-- ✅ **Lifetime Support** — Direct assistance when you need it
-
----
-
-## 🔒 Ring0 vs r77 Rootkit
-
-**r77** is a popular open-source Ring 3 (user-mode) rootkit. Here's why **Ring0 is in a different league:**
-
-| Capability | r77 (Ring 3) | Ring0 (Ring 0) |
-|------------|--------------|----------------|
-| **Privilege Level** | User-mode (Ring 3) | Kernel-mode (Ring 0) |
-| **Survives Reboot** | ❌ Requires registry/task persistence | ✅ Boot-start driver loads automatically |
-| **DSE Bypass** | ❌ Cannot load unsigned drivers | ✅ UEFI bootkit patches Windows loader |
-| **Hide from Kernel** | ❌ Kernel APIs still see everything | ✅ Operates AT kernel level |
-| **EDR Callback Removal** | ❌ Impossible from user-mode | ✅ Direct access to callback arrays |
-| **Kill ETW/AMSI** | ⚠️ Per-process, easily restored | ✅ System-wide kernel patches |
-| **Process Protection** | ❌ Cannot set PPL | ✅ Full EPROCESS manipulation |
-| **Unload EDR Drivers** | ❌ Cannot touch kernel drivers | ✅ Force unload any driver |
-| **SSDT Unhooking** | ❌ No kernel access | ✅ Restore original syscall table |
-| **Detection Risk** | ⚠️ Hooks visible to kernel scanners | ✅ Operates below detection layer |
-| **Defender Removal** | ⚠️ Can be re-enabled | ✅ Permanent kernel-level disable |
-| **Packet Filtering (WFP)** | ❌ No kernel network access | ✅ Real WFP callouts block traffic |
-| **PPL Injection** | ❌ Cannot bypass PPL | ✅ Inject into protected processes |
-| **Hidden Tasks** | ⚠️ Visible in Task Scheduler | ✅ Completely invisible persistence |
-| **PPID Spoofing** | ⚠️ User-mode only | ✅ Kernel-level parent manipulation |
-
-### The Bottom Line
-
-> **r77 hides FROM the kernel. Ring0 IS the kernel.**
-
-User-mode rootkits like r77 are playing defense — they hook APIs and hope nobody looks too closely. Ring0 plays offense — it operates at the same level as Windows itself, making detection nearly impossible without specialized forensic tools.
+| Feature | Ring0 | Admin Only | User-Mode Tools |
+|---------|-------|------------|-----------------|
+| True invisibility | ✓ Kernel level | ✗ Visible in Task Manager | ✗ API hooking only |
+| Survives reboot | ✓ Bootkit | ✗ No | ✗ Requires re-injection |
+| SYSTEM privileges | ✓ Native | ✗ Still just Admin | ✗ Requires exploit |
+| EDR/AV bypass | ✓ Callback removal | ✗ AV sees everything | ✗ Detectable hooks |
+| Port hiding | ✓ Transport layer | ✗ netstat shows all | ✗ User-space hooks |
+| Kill protection | ✓ PPL level | ✗ Can be terminated | ✗ Can be terminated |
+| Survives OS reinstall | ✓ EFI persistence | ✗ No | ✗ No |
 
 ---
 
-## ⚠️ Disclaimer
+## Requirements
 
-This software is provided for **authorized security testing and research purposes only**.
-
-The purchaser assumes all responsibility for ensuring compliance with applicable laws and regulations. Unauthorized deployment against systems you do not own or have explicit permission to test is **illegal** and may result in criminal prosecution.
-
-By purchasing, you agree that you will use this software only for legitimate security research, penetration testing, or educational purposes.
+- Windows 10/11 x64
+- Secure Boot: Must be OFF for bootkit
+- Administrator privileges on target
 
 ---
 
-## 📧 Purchase & Contact
+## Integration
 
-Interested? Ready to take your Pulsar setup to the next level?
-
-**Contact for purchase inquiries and demos.**
+Ring0 integrates with Pulsar RAT as a plugin. The control panel provides access to all kernel features through a graphical interface. Driver deployment, bootkit installation, and persistence are handled automatically.
 
 ---
 
-<p align="center">
-  <strong>Ring0 — Because user-mode fcking sucks.</strong>
-</p>
+## Availability
+
+**Sponsor's Edition License (first 10 customers only)**: $175 USD 
+
+> Sponsors get _early_ access to the Beta plugin (current/ongoing) at a majorly discounted price + permanent 10% off other/future HopelessLabs products. You will also get priority support and priority feedback/suggestions for future updates as well as access to the RING0 Sponsor's Chat for priority support and occasional private builds and code snippetsand RING0 Beta Community
+
+**Lifetime License (Release price)**: $300 USD 
+
+> Base price for basic lifetime access + updates to the RING0 plugin/drivers as well as lifetime support and feedback
+
+**Beta Lifetime License**: $350 USD 
+
+> Beta access includes _early_ access to updates and experimental features, as well as access to the RING0 BETA Telegram Community where members can share and discuss tips, feedback, and help improve RING0 to fit their specific needs better
+
+**VIP Edition License**: $500 USD
+
+> VIP Edition is the same as Sponsor's Edition but with extra private features included such as a custom kernel-level R@nsomw@re encrypting faster than the majority of most existing r@nsomw@re and other features deemed "not safe for GitHub"
 
 
+### What's Included
+- Ring0 plugin (Server + Client DLLs)
+- Kernel driver (ring0.sys)
+- UEFI bootkit (ring0.efi)
+- Documentation and setup guide
+- Lifetime updates
 
+### Payment
+- Crypto payments only [BTC, ETH, XMR, LTC, RVN, USDT, SOL] (ETH, LTC, RVN, XMR preferred)  
+- Plugin + drivers sent upon payment
+- No refunds
+  - If issues with payment process occurr we will troubleshoot however we can. We aren't bankers though, if it's screwed it's screwed 
 
+---
 
+## Contact
 
+**Telegram**: [@skeeminator](https://t.me/skeeminator)
 
+**Channel**: [@hopelesslabs](https://t.me/hopelesslabs)
 
-
-
+*DM for questions, demos, or purchase*
