@@ -121,7 +121,7 @@ Ring0 integrates with Pulsar RAT as a plugin. The control panel provides access 
 
 ---
 
-### Standalone Edition (Coming soon...) — $500 USD
+### Standalone Edition (Coming soon...) — $??? USD
 
 > A fully self-contained application that includes all kernel features without requiring the Pulsar RAT framework. Designed for users who need a universal, independent solution for kernel-level operations. Includes its own C2 panel and client builder.
 
@@ -154,5 +154,6 @@ Ring0 integrates with Pulsar RAT as a plugin. The control panel provides access 
 **Channel**: [@hopelesslabs](https://t.me/hopelesslabs)
 
 *DM for questions, demos, or purchase*
+
 
 
