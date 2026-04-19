@@ -1,0 +1,342 @@
+﻿<Window x:Class="Licensing_System.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="RINGW0RM Licensing Manager" Height="850" Width="1300"
+        Background="#1a1a2e" WindowStartupLocation="CenterScreen">
+    
+    <Window.Resources>
+        <!-- Dark Theme Colors -->
+        <SolidColorBrush x:Key="DarkBg" Color="#1a1a2e"/>
+        <SolidColorBrush x:Key="PanelBg" Color="#16213e"/>
+        <SolidColorBrush x:Key="DarkerBg" Color="#0f1624"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#6c63ff"/>
+        <SolidColorBrush x:Key="TextPrimary" Color="White"/>
+        <SolidColorBrush x:Key="TextSecondary" Color="#a0a0a0"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#4a4e69"/>
+        <SolidColorBrush x:Key="RowAlt" Color="#1f2c4a"/>
+        
+        <!-- Button Style -->
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#4a4e69"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#6c63ff"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- TextBox Style -->
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#0f1624"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#4a4e69"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="CaretBrush" Value="White"/>
+        </Style>
+        
+        <!-- ComboBox Style - Dark themed dropdown -->
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#0f1624"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#4a4e69"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+        </Style>
+        
+        <!-- ComboBoxItem Style -->
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="#16213e"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#4a4e69"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#6c63ff"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- Label Style -->
+        <Style TargetType="Label">
+            <Setter Property="Foreground" Value="#a0a0a0"/>
+            <Setter Property="Padding" Value="0,5,0,2"/>
+        </Style>
+        
+        <!-- DataGrid Styles -->
+        <Style TargetType="DataGrid">
+            <Setter Property="Background" Value="#0f1624"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#4a4e69"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="RowBackground" Value="#16213e"/>
+            <Setter Property="AlternatingRowBackground" Value="#1f2c4a"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="SelectionMode" Value="Single"/>
+            <Setter Property="RowHeight" Value="35"/>
+        </Style>
+        
+        <!-- DataGrid Column Header Style -->
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#4a4e69"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="BorderBrush" Value="#16213e"/>
+            <Setter Property="BorderThickness" Value="0,0,1,0"/>
+        </Style>
+        
+        <!-- DataGrid Cell Style -->
+        <Style TargetType="DataGridCell">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#6c63ff"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- DataGrid Row Style -->
+        <Style TargetType="DataGridRow">
+            <Setter Property="Background" Value="#16213e"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#2a3b5c"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#3d4a6b"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="🔐 RINGW0RM Licensing Manager" 
+                       FontSize="28" FontWeight="Bold" Foreground="#6c63ff"/>
+            <TextBlock Text="Manage customers, generate keys, build customer-specific releases" 
+                       FontSize="14" Foreground="#a0a0a0" Margin="0,5,0,0"/>
+        </StackPanel>
+        
+        <!-- Main Content - Split View -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="400"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Left: Customer List -->
+            <Border Grid.Column="0" Background="#16213e" CornerRadius="10" Padding="15" Margin="0,0,15,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Text="📋 Customers" FontSize="18" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+                    
+                    <!-- Search Bar -->
+                    <Grid Grid.Row="1" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="txtSearch" TextChanged="TxtSearch_TextChanged"/>
+                        <Button Grid.Column="1" Content="🔄 Refresh" Margin="10,0,0,0" Click="BtnRefresh_Click"/>
+                    </Grid>
+                    
+                    <!-- Customer DataGrid -->
+                    <DataGrid x:Name="dgCustomers" Grid.Row="2" AutoGenerateColumns="False"
+                              SelectionChanged="DgCustomers_SelectionChanged"
+                              CanUserAddRows="False" IsReadOnly="True"
+                              MouseDoubleClick="DgCustomers_DoubleClick">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="85"/>
+                            <DataGridTextColumn Header="Alias" Binding="{Binding Alias}" Width="*"/>
+                            <DataGridTextColumn Header="Tier" Binding="{Binding Tier}" Width="110"/>
+                            <DataGridTextColumn Header="Key Prefix" Binding="{Binding KeyPrefix}" Width="95"/>
+                            <DataGridTextColumn Header="Purchase" Binding="{Binding PurchaseDate, StringFormat=MM/dd/yyyy}" Width="95"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    
+                    <!-- Customer List Actions -->
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,10,0,0">
+                        <Button x:Name="btnViewDetails" Content="👁️ View Details" Click="BtnViewDetails_Click" IsEnabled="False"/>
+                        <Button x:Name="btnOpenBuildFolder" Content="📁 Open Build Folder" Margin="10,0,0,0" Click="BtnOpenBuildFolder_Click" IsEnabled="False"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            
+            <!-- Right: Customer Details/Add Form -->
+            <Border Grid.Column="1" Background="#16213e" CornerRadius="10" Padding="15">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock x:Name="lblFormTitle" Text="➕ Add New Customer" 
+                                   FontSize="18" FontWeight="Bold" Foreground="White" Margin="0,0,0,15"/>
+                        
+                        <!-- Customer ID (read-only) -->
+                        <Label Content="Customer ID"/>
+                        <TextBox x:Name="txtCustomerId" IsReadOnly="True" Background="#0a0f1a" 
+                                 Text="(Auto-generated)" Foreground="#808080" Margin="0,0,0,10"/>
+                        
+                        <!-- Identity -->
+                        <Label Content="Alias / Username *"/>
+                        <TextBox x:Name="txtAlias" Margin="0,0,0,10"/>
+                        
+                        <!-- Contact Information -->
+                        <TextBlock Text="📞 Contact Information" FontWeight="Bold" Foreground="#6c63ff" Margin="0,10,0,8"/>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <Label Content="Telegram"/>
+                                <TextBox x:Name="txtTelegram"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <Label Content="Discord"/>
+                                <TextBox x:Name="txtDiscord"/>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <Label Content="Signal"/>
+                                <TextBox x:Name="txtSignal"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <Label Content="Email"/>
+                                <TextBox x:Name="txtEmail"/>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <!-- License Info -->
+                        <TextBlock Text="🔑 License Information" FontWeight="Bold" Foreground="#6c63ff" Margin="0,15,0,8"/>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <Label Content="License Tier"/>
+                                <ComboBox x:Name="cboTier">
+                                    <ComboBoxItem Content="🌟 Sponsor ($150)" Tag="Sponsor"/>
+                                    <ComboBoxItem Content="Lifetime ($175)" Tag="LifetimeNoUpdates"/>
+                                    <ComboBoxItem Content="Standard ($300)" Tag="Standard" IsSelected="True"/>
+                                    <ComboBoxItem Content="Beta ($400)" Tag="Beta"/>
+                                    <ComboBoxItem Content="Standalone" Tag="Standalone"/>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <Label Content="Price ($)"/>
+                                <TextBox x:Name="txtPrice" Text="300"/>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <!-- Key Info -->
+                        <Label Content="Unique Key Prefix (auto-generated)" Margin="0,10,0,0"/>
+                        <TextBox x:Name="txtKeyPrefix" IsReadOnly="True" Background="#0a0f1a" 
+                                 Text="(Generated on save)" Foreground="#00ff00" FontFamily="Consolas" Margin="0,0,0,5"/>
+                        
+                        <!-- Proof of Purchase -->
+                        <Label Content="Proof of Purchase"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtReceiptPath" IsReadOnly="True"/>
+                            <Button Grid.Column="1" Content="📎" Margin="5,0,0,0" Click="BtnBrowseReceipt_Click" Width="40"/>
+                        </Grid>
+                        
+                        <!-- Notes -->
+                        <Label Content="Notes" Margin="0,10,0,0"/>
+                        <TextBox x:Name="txtNotes" Height="50" AcceptsReturn="True" 
+                                 TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0,0,0,15"/>
+                        
+                        <!-- Action Buttons -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="btnSave" Content="💾 Save" Grid.Column="0" Margin="0,0,5,0" Click="BtnSave_Click"/>
+                            <Button x:Name="btnNew" Content="➕ New" Grid.Column="1" Margin="5,0,5,0" Click="BtnNew_Click"/>
+                            <Button x:Name="btnDelete" Content="🗑️ Delete" Grid.Column="2" Margin="5,0,0,0" 
+                                    Background="#8b0000" Click="BtnDelete_Click"/>
+                        </Grid>
+                        
+                        <!-- Build Section -->
+                        <Border Background="#0f1624" CornerRadius="8" Padding="15" Margin="0,20,0,0">
+                            <StackPanel>
+                                <TextBlock Text="📦 Build Customer Release" FontWeight="Bold" Foreground="#6c63ff"/>
+                                <TextBlock Text="Creates a unique build with this customer's key embedded" 
+                                           Foreground="#808080" FontSize="11" Margin="0,5,0,10" TextWrapping="Wrap"/>
+                                
+                                <!-- Build Type Selector -->
+                                <Label Content="Build Type" Foreground="#a0a0a0"/>
+                                <ComboBox x:Name="cboBuildType" Margin="0,0,0,10">
+                                    <ComboBoxItem Content="🚀 Release (Production)" Tag="Release" IsSelected="True"/>
+                                    <ComboBoxItem Content="🔧 Customer Debug (Troubleshooting)" Tag="CustomerDebug"/>
+                                </ComboBox>
+                                
+                                <Button x:Name="btnBuild" Content="🔨 Build Selected" Click="BtnBuild_Click"
+                                        Background="#28a745" IsEnabled="False"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+        
+        <!-- Footer: Log Output -->
+        <Border Grid.Row="2" Background="#0f1624" CornerRadius="10" Padding="10" Margin="0,15,0,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="120"/>
+                </Grid.RowDefinitions>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="📋 Build Log" FontWeight="Bold" Foreground="#6c63ff"/>
+                    <Button Content="Clear" Padding="8,2" Margin="15,0,0,0" FontSize="10" Click="BtnClearLog_Click"/>
+                </StackPanel>
+                <TextBox x:Name="txtLog" Grid.Row="1" IsReadOnly="True" 
+                         Background="Transparent" Foreground="#00ff00" FontFamily="Consolas" FontSize="11"
+                         TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" BorderThickness="0" Margin="0,5,0,0"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

@@ -1,0 +1,12 @@
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Poopsar-Beta\Poopsar-main\bin\Release\net48\Pulsar.Common.dll
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Poopsar-Beta\Poopsar-main\Pulsar.Common\obj\Release\net48\Pulsar.Common.csproj.AssemblyReference.cache
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Poopsar-Beta\Poopsar-main\Pulsar.Common\obj\Release\net48\Pulsar.Common.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Poopsar-Beta\Poopsar-main\Pulsar.Common\obj\Release\net48\Pulsar.Common.csproj.CoreCompileInputs.cache
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Poopsar-Beta\Poopsar-main\Pulsar.Common\obj\Release\net48\Pulsar.C.5F13B81E.Up2Date
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Poopsar-Beta\Poopsar-main\Pulsar.Common\obj\Release\net48\Pulsar.Common.dll
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\PulsarSDK\bin\Release\net48\Pulsar.Common.dll
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\PulsarSDK\Pulsar.Common\obj\Release\net48\Pulsar.Common.csproj.AssemblyReference.cache
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\PulsarSDK\Pulsar.Common\obj\Release\net48\Pulsar.Common.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\PulsarSDK\Pulsar.Common\obj\Release\net48\Pulsar.Common.csproj.CoreCompileInputs.cache
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\PulsarSDK\Pulsar.Common\obj\Release\net48\Pulsar.C.5F13B81E.Up2Date
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\PulsarSDK\Pulsar.Common\obj\Release\net48\Pulsar.Common.dll

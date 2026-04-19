@@ -1,0 +1,12 @@
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\Pulsar.Plugin.Ring0.Common\bin\Debug\net9.0-windows\Pulsar.Plugin.Ring0.Common.deps.json
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\Pulsar.Plugin.Ring0.Common\bin\Debug\net9.0-windows\Pulsar.Plugin.Ring0.Common.dll
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\Pulsar.Plugin.Ring0.Common\bin\Debug\net9.0-windows\Pulsar.Plugin.Ring0.Common.pdb
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\Pulsar.Plugin.Ring0.Common\obj\Debug\net9.0-windows\Pulsar.Plugin.Ring0.Common.csproj.AssemblyReference.cache
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\Pulsar.Plugin.Ring0.Common\obj\Debug\net9.0-windows\Pulsar.Plugin.Ring0.Common.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\Pulsar.Plugin.Ring0.Common\obj\Debug\net9.0-windows\Pulsar.Plugin.Ring0.Common.AssemblyInfoInputs.cache
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\Pulsar.Plugin.Ring0.Common\obj\Debug\net9.0-windows\Pulsar.Plugin.Ring0.Common.AssemblyInfo.cs
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\Pulsar.Plugin.Ring0.Common\obj\Debug\net9.0-windows\Pulsar.Plugin.Ring0.Common.csproj.CoreCompileInputs.cache
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\Pulsar.Plugin.Ring0.Common\obj\Debug\net9.0-windows\Pulsar.Plugin.Ring0.Common.dll
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\Pulsar.Plugin.Ring0.Common\obj\Debug\net9.0-windows\refint\Pulsar.Plugin.Ring0.Common.dll
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\Pulsar.Plugin.Ring0.Common\obj\Debug\net9.0-windows\Pulsar.Plugin.Ring0.Common.pdb
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\Pulsar.Plugin.Ring0.Common\obj\Debug\net9.0-windows\ref\Pulsar.Plugin.Ring0.Common.dll

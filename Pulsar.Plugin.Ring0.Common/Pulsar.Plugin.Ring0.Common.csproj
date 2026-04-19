@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net48;net9.0-windows</TargetFrameworks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Configurations>Debug;Release;CustomerDebug</Configurations>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+  <!-- CustomerDebug: Same as Release, Common is never obfuscated (required for MessagePack) -->
+  <PropertyGroup Condition="'$(Configuration)'=='CustomerDebug'">
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MessagePack" Version="3.1.4" />
+  </ItemGroup>
+  <!-- Common is NOT obfuscated (shared types for serialization) -->
+  <Target Name="CopyToPlugins" AfterTargets="Build">
+    <MakeDir Directories="$(ProjectDir)..\plugins" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ProjectDir)..\plugins" />
+  </Target>
+</Project>

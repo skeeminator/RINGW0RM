@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Weavers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="FodyWeavers.xsd">
+  <Costura>
+    <!-- Include only our Common assembly, not all referenced assemblies -->
+    <IncludeAssemblies>
+      Pulsar.Plugin.Ring0.Common
+    </IncludeAssemblies>
+  </Costura>
+</Weavers>

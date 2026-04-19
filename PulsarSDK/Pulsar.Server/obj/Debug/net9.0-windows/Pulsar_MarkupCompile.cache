@@ -1,0 +1,20 @@
+﻿Pulsar
+
+
+winexe
+C#
+.cs
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\PulsarSDK\Pulsar.Server\obj\Debug\net9.0-windows\
+Pulsar.Server
+none
+false
+TRACE;DEBUG;NET;NET9_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NET9_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
+
+4-1867907988
+
+202-572225690
+261-1171170445
+Controls\Wpf\ClientsListView.xaml;Controls\Wpf\HeatMapView.xaml;Controls\Wpf\ProcessTreeView.xaml;Controls\Wpf\StatsView.xaml;
+
+False
+

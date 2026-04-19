@@ -1,0 +1,16 @@
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Poopsar-Beta\Poopsar-main\bin\Release\net9.0-windows\Pulsar.Common.deps.json
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Poopsar-Beta\Poopsar-main\bin\Release\net9.0-windows\Pulsar.Common.dll
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Poopsar-Beta\Poopsar-main\Pulsar.Common\obj\Release\net9.0-windows\Pulsar.Common.csproj.AssemblyReference.cache
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Poopsar-Beta\Poopsar-main\Pulsar.Common\obj\Release\net9.0-windows\Pulsar.Common.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Poopsar-Beta\Poopsar-main\Pulsar.Common\obj\Release\net9.0-windows\Pulsar.Common.csproj.CoreCompileInputs.cache
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Poopsar-Beta\Poopsar-main\Pulsar.Common\obj\Release\net9.0-windows\Pulsar.Common.dll
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Poopsar-Beta\Poopsar-main\Pulsar.Common\obj\Release\net9.0-windows\refint\Pulsar.Common.dll
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Poopsar-Beta\Poopsar-main\Pulsar.Common\obj\Release\net9.0-windows\ref\Pulsar.Common.dll
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\PulsarSDK\bin\Release\net9.0-windows\Pulsar.Common.deps.json
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\PulsarSDK\bin\Release\net9.0-windows\Pulsar.Common.dll
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\PulsarSDK\Pulsar.Common\obj\Release\net9.0-windows\Pulsar.Common.csproj.AssemblyReference.cache
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\PulsarSDK\Pulsar.Common\obj\Release\net9.0-windows\Pulsar.Common.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\PulsarSDK\Pulsar.Common\obj\Release\net9.0-windows\Pulsar.Common.csproj.CoreCompileInputs.cache
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\PulsarSDK\Pulsar.Common\obj\Release\net9.0-windows\Pulsar.Common.dll
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\PulsarSDK\Pulsar.Common\obj\Release\net9.0-windows\refint\Pulsar.Common.dll
+C:\Users\skeem\Documents\Sources\Persistence Source\Chaos-Rootkit-4\Pulsar.Plugin.Ring0\PulsarSDK\Pulsar.Common\obj\Release\net9.0-windows\ref\Pulsar.Common.dll

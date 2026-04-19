@@ -1,0 +1,21 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "x64\\Release\\Labels.h.obj",
+            "outputs": [
+                "x64\\Release\\",
+                "C:\\Users\\skeem\\Documents\\Sources\\Persistence Source\\Chaos-Rootkit-4\\Pulsar.Plugin.Ring0\\Elysium\\Bootkit\\x64\\Release\\Labels.h.ifc"
+            ],
+            "provides": [
+                {
+                    "logical-name": "Labels.h",
+                    "source-path": "c:\\users\\skeem\\documents\\sources\\persistence source\\chaos-rootkit-4\\pulsar.plugin.ring0\\elysium\\bootkit\\labels.h",
+                    "lookup-method": "absolute"
+                }
+            ],
+            "requires": []
+        }
+    ]
+}

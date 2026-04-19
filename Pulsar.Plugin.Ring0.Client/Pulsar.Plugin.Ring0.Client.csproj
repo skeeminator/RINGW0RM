@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Configurations>Debug;Release;CustomerDebug</Configurations>
+    <PlatformTarget>x64</PlatformTarget>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <!-- CustomerDebug: Component logging enabled, obfuscation applied, licensing enforced -->
+  <PropertyGroup Condition="'$(Configuration)'=='CustomerDebug'">
+    <DefineConstants>CUSTOMER_DEBUG;TRACE</DefineConstants>
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PulsarSDK\Pulsar.Common\Pulsar.Common.csproj" />
+    <ProjectReference Include="..\Pulsar.Plugin.Ring0.Common\Pulsar.Plugin.Ring0.Common.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Costura.Fody embeds referenced assemblies into the output DLL -->
+    <PackageReference Include="Costura.Fody" Version="5.7.0">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="ILRepack" Version="2.0.34" />
+    <PackageReference Include="MessagePack" Version="3.1.4" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
+    <PackageReference Include="System.Windows.Forms" Version="4.0.0" />
+  </ItemGroup>
+  
+  <!-- Obfuscate with .NET Reactor then copy to plugins -->
+  <Target Name="ObfuscateAndCopy" AfterTargets="Build" Condition="'$(Configuration)'=='Release'">
+    <MakeDir Directories="$(ProjectDir)..\plugins" />
+    <!-- Note: Reduced obfuscation to avoid Module init errors. Necrobit and hide_calls can break reflection-based plugin loading -->
+    <Exec Command="&quot;$(ProjectDir)..\Obfuscator\dotNET_Reactor.Console.exe&quot; -file &quot;$(TargetPath)&quot; -targetfile &quot;$(ProjectDir)..\plugins\$(TargetFileName)&quot; -q -antitamp 1 -control_flow 1 -flow_level 5 -stringencryption 1 -obfuscation 1 -suppressildasm 1" />
+    <Message Text="Obfuscated: $(TargetFileName)" Importance="high" />
+  </Target>
+  <Target Name="CopyToPlugins" AfterTargets="Build" Condition="'$(Configuration)'=='Debug'">
+    <MakeDir Directories="$(ProjectDir)..\plugins" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ProjectDir)..\plugins" />
+  </Target>
+</Project>
